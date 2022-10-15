@@ -304,14 +304,22 @@ function nginx_ssl_configuraion() {
 	sed -i "s|KEY_PATH|/ssl/xray.key|g" ${nginx_conf}
 }
 
-function configure_certbot_nginx() {
-	installit certbot python3-certbot-nginx
-	judge "certbot python3-certbot-nginx Installation"
-	certbot --nginx
-	judge "certbot ssl certification for nginx"
+function configure_certbot() {
+	mkdir /ssl >/dev/null 2>&1
+	installit certbot python3-certbot
+	judge "certbot python3-certbot Installation"
+	sudo certbot certonly --standalone --preferred-challenges https -d $domain
+	judge "certbot ssl certification"
+
+	if [[ -f /etc/letsencrypt/live/$domain ]]; then
+		cp -a /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
+		judge "cert file copy"
+		cp -a /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
+		judge "key file copy"
+	fi
 }
 
-function renew_certbot_ssl() {
+function renew_certbot() {
 	certbot renew --dry-run
 	judge "SSL renew"
 }
@@ -521,7 +529,7 @@ function vmess_ws_link_gen() {
     SERVER_IP=$(ip -4 addr | grep -E 'inet' | cut -d ' ' -f 6 | cut -f 1 -d '/' | sed -n '2p')
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
-    qrencode -t ansiutf8 -l L $server_link
+    qrencode -t ansiutf8 -l L "${server_link}"
     echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
 }
 
@@ -566,7 +574,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
         echo -e "${Color_Off}Version = ${Blue}${os_version}\n"
     fi
 
-	echo -e "========== VMESS =========="
+	echo -e "==========  VMESS  =========="
     echo -e "${Green}1. VMESS + WS${Color_Off}"
 	echo -e "========== Settings =========="
 	echo -e "${Green}2. Change vps DNS to Cloudflare"
