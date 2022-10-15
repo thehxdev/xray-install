@@ -99,6 +99,16 @@ if [[ "$os" == "ubuntu" && "$os_version" -lt 2004 ]]; then
 	fi
 }
 
+function cloudflare_dns_v4() {
+	echo "nameserver 1.1.1.1" > /etc/resolv.conf
+	echo "nameserver 1.0.0.1" >> /etc/resolv.conf
+}
+
+function cloudflare_dns_v6() {
+	echo "nameserver 2606:4700:4700::1111" > /etc/resolv.conf
+	echo "nameserver 2606:4700:4700::1001" >> /etc/resolv.conf
+}
+
 function disable_firewalls() {
 	is_firewalld=$(systemctl list-units --type=service --state=active | grep firewalld | wc -l)
 	is_nftables=$(systemctl list-units --type=service --state=active | grep nftables | wc -l)
@@ -246,6 +256,54 @@ function xray_tmp_config_file_check_and_use() {
 	fi
 }
 
+function configure_nginx() {
+	nginx_conf="/etc/nginx/sites-available/default"
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_default_sample.conf
+	if [[ -f $nginx_conf ]]; then
+		sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+		sed -i "s|CERT_PATH|/ssl/xray.crt|g" ${nginx_conf}
+		sed -i "s|KEY_PATH|/ssl/xray.key|g" ${nginx_conf}
+		judge "Nginx config modification"
+	fi
+	systemctl enable nginx
+	systemctl restart nginx
+}
+
+function configure_nginx_reverse_proxy() {
+	nginx_conf="/etc/nginx/sites-available/default"
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy.conf
+	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+	judge "Nginx config modification"
+	systemctl enable nginx
+	systemctl restart nginx
+}
+
+function configure_certbot_nginx() {
+	installit certbot python3-certbot-nginx
+	judge "certbot python3-certbot-nginx Installation"
+	certbot --nginx
+	judge "certbot ssl certification for nginx"
+}
+
+function renew_certbot_ssl() {
+	certbot renew --dry-run
+	judge "SSL renew"
+}
+
+function add_wsPath_to_nginx() {
+	sed -i "s/wsPATH/${WS_PATH}/g" ${nginx_conf}
+}
+
+function xray_install() {
+	print_ok "Installing Xray"
+	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install
+	judge "Xray Installation"
+
+	# Import link for Xray generation
+	echo $domain >$domain_tmp_dir/domain
+	judge "Domain name record"
+}
+
 function modify_UUID() {
 	[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
@@ -266,61 +324,15 @@ function modify_fallback_ws() {
 }
 
 function modify_ws() {
-	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
 	xray_tmp_config_file_check_and_use
 	judge "modify Xray ws"
-}
-
-function configure_certbot_nginx() {
-	installit certbot python3-certbot-nginx
-	judge "certbot python3-certbot-nginx Installation"
-	certbot --nginx
-	judge "certbot ssl certification for nginx"
-}
-
-function renew_certbot_ssl() {
-	certbot renew --dry-run
-	judge "SSL renew"
 }
 
 function configure_xray() {
 	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/xray_xtls-rprx-direct.json
 	modify_UUID
 	modify_port
-}
-
-function configure_nginx() {
-	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/web.conf
-	if [[ -f "$nginx_conf" ]]; then
-		sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-		judge "Nginx config modification"
-	fi
-	systemctl enable nginx
-	systemctl restart nginx
-}
-
-function configure_nginx_reverse_proxy_vmess_vless() {
-	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy.conf
-	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-	judge "Nginx config modification"
-	systemctl enable nginx
-	systemctl restart nginx
-}
-
-function add_wsPath_to_nginx() {
-	sed -i "s/wsPATH/${WS_PATH}/g" ${nginx_conf}
-}
-
-function xray_install() {
-	print_ok "Installing Xray"
-	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install
-	judge "Xray Installation"
-
-	# Import link for Xray generation
-	echo $domain >$domain_tmp_dir/domain
-	judge "Domain name record"
 }
 
 function ssl_install() {
@@ -469,6 +481,30 @@ function bbr_boost() {
   wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
 
+function vmess_ws_link() {
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	SERVER_IP=$(ip -4 addr | grep -E 'inet' | cut -d ' ' -f 6 | cut -f 1 -d '/' | sed -n '2p')
+
+	print_ok "vmess://$UUID@$SERVER_IP:$PORT?path=/$WS_PATH&security=none#xray_hx_config1"
+}
+
+function vmess_ws() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	xray_install
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket/config_server.json
+	modify_port
+	modify_UUID
+	modify_ws
+	restart_all
+	vmess_ws_link
+}
+
 function greetings_screen() {
 	echo -e '=============================================================================
 
@@ -492,6 +528,4 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		echo -e "${Color_Off}OS = ${Blue}Ubuntu"
 		echo -e "${Color_Off}Version = ${Blue}${os_version}"
 	fi
-
-	echo -e "\n${Color_Off}============================================================================="
 }
