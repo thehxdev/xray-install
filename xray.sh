@@ -22,7 +22,7 @@ domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
-WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})/"
+WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 
 OK="[${Green}OK${Color_Off}]"
 ERROR="[${Red}ERROR${Color_Off}]"
@@ -518,6 +518,7 @@ function vmess_ws() {
 }
 
 function greetings_screen() {
+    clear
     echo -e '=============================================================================
 
 $$\   $$\ $$$$$$$\   $$$$$$\ $$\     $$\       $$\   $$\ $$\   $$\ 
