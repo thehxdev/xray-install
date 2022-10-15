@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Colors
 Color_Off='\033[0m'       # Text Reset
 Black='\033[0;30m'        # Black
 Red='\033[0;31m'          # Red
@@ -10,9 +11,10 @@ Purple='\033[0;35m'       # Purple
 Cyan='\033[0;36m'         # Cyan
 White='\033[0;37m'        # White
 
+# Variables
 github_branch="main"
-xray_conf_dir="/usr/local/etc/xray"
-website_dir="/var/www/html/"
+xray_conf_dir="/usr/local/xray"
+website_dir="/var/www/html"
 xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
 cert_dir="/root/.ssl/"
@@ -76,20 +78,17 @@ function check_os() {
 	if grep -qs "ubuntu" /etc/os-release; then
 		os="ubuntu"
 		os_version=$(grep 'VERSION_ID' /etc/os-release | cut -d '"' -f 2 | tr -d '.')
-		$INS="apt install -y"
 		print_ok "Ubuntu detected!"
 	elif [[ -e /etc/debian_version ]]; then
 		os="debian"
 		os_version=$(cat /etc/debian_version | cut -d '.' -f 1)
-		$INS="apt install -y"
 		print_ok "Debian detected!"
 	else
 		print_error "This installer seems to be running on an unsupported distribution.
 		Supported distros are Debian and Ubuntu."
 		exit
 	fi
-
-	if [[ "$os" == "ubuntu" && "$os_version" -lt 2004 ]]; then
+if [[ "$os" == "ubuntu" && "$os_version" -lt 2004 ]]; then
 		print_error "Ubuntu 20.04 or higher is required to use this installer.
 		This version of Ubuntu is too old and unsupported."
 		exit
@@ -211,6 +210,34 @@ function domain_check() {
 	fi
 }
 
+function port_exist_check() {
+	if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
+		print_ok "$1 Port is not in use"
+		sleep 1
+	else
+		print_error "It is detected that port $1 is occupied, the following is the occupancy information of port $1"
+		lsof -i:"$1"
+		print_error "After 5s, it will try to kill the occupied process automatically"
+		sleep 5
+		lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
+		print_ok "Kill Finished"
+		sleep 1
+	fi
+}
+
+function modify_port() {
+	read -rp "Please enter the port number (default: 443): " PORT
+	[ -z "$PORT" ] && PORT="443"
+	if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
+		print_error "Port must be in range of 0-65535"
+		exit 1
+	fi
+	port_exist_check $PORT
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${xray_conf_dir}/config_tmp.json
+	xray_tmp_config_file_check_and_use
+	judge "Xray port modification"
+}
+
 function xray_tmp_config_file_check_and_use() {
 	if [[ -s ${xray_conf_dir}/config_tmp.json ]]; then
 		mv -f ${xray_conf_dir}/config_tmp.json ${xray_conf_dir}/config.json
@@ -239,15 +266,208 @@ function modify_fallback_ws() {
 }
 
 function modify_ws() {
-  cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
-  xray_tmp_config_file_check_and_use
-  judge "modify Xray ws"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
+	xray_tmp_config_file_check_and_use
+	judge "modify Xray ws"
 }
 
+function configure_certbot_nginx() {
+	installit certbot python3-certbot-nginx
+	judge "certbot python3-certbot-nginx Installation"
+	certbot --nginx
+	judge "certbot ssl certification for nginx"
+}
 
+function renew_certbot_ssl() {
+	certbot renew --dry-run
+	judge "SSL renew"
+}
 
+function configure_xray() {
+	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/xray_xtls-rprx-direct.json
+	modify_UUID
+	modify_port
+}
 
+function configure_nginx() {
+	nginx_conf="/etc/nginx/sites-available/default"
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/web.conf
+	if [[ -f "$nginx_conf" ]]; then
+		sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+		judge "Nginx config modification"
+	fi
+	systemctl enable nginx
+	systemctl restart nginx
+}
 
+function configure_nginx_reverse_proxy_vmess_vless() {
+	nginx_conf="/etc/nginx/sites-available/default"
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy.conf
+	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+	judge "Nginx config modification"
+	systemctl enable nginx
+	systemctl restart nginx
+}
+
+function add_wsPath_to_nginx() {
+	sed -i "s/wsPATH/${WS_PATH}/g" ${nginx_conf}
+}
+
+function xray_install() {
+	print_ok "Installing Xray"
+	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install
+	judge "Xray Installation"
+
+	# Import link for Xray generation
+	echo $domain >$domain_tmp_dir/domain
+	judge "Domain name record"
+}
+
+function ssl_install() {
+	curl -L https://get.acme.sh | bash
+	judge "Install the SSL certificate generation script"
+}
+
+function acme() {
+	"$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+
+	sed -i "6s/^/#/" "$nginx_conf"
+	sed -i "6a\\\troot $website_dir;" "$nginx_conf"
+	systemctl restart nginx
+
+	if "$HOME"/.acme.sh/acme.sh --issue --insecure -d "${domain}" --webroot "$website_dir" -k ec-256 --force; then
+		print_ok "SSL certificate generated successfully"
+		sleep 2
+		if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
+		print_ok "SSL certificate configured successfully"
+		sleep 2
+		if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
+			wg-quick up wgcf >/dev/null 2>&1
+			print_ok "wgcf-warp started"
+		fi
+		fi
+	elif "$HOME"/.acme.sh/acme.sh --issue --insecure -d "${domain}" --webroot "$website_dir" -k ec-256 --force --listen-v6; then
+		print_ok "SSL certificate generated successfully"
+		sleep 2
+		if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
+		print_ok "SSL certificate configured successfully"
+		sleep 2
+		if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
+			wg-quick up wgcf >/dev/null 2>&1
+			print_ok "wgcf-warp started"
+		fi
+		fi
+	else
+		print_error "SSL certificate generation failed"
+		rm -rf "$HOME/.acme.sh/${domain}_ecc"
+		if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
+		wg-quick up wgcf >/dev/null 2>&1
+		print_ok "wgcf-warp started"
+		fi
+		exit 1
+	fi
+
+	sed -i "7d" "$nginx_conf"
+	sed -i "6s/#//" "$nginx_conf"
+}
+
+function ssl_judge_and_install() {
+	mkdir -p /ssl >/dev/null 2>&1
+	if [[ -f "/ssl/xray.key" || -f "/ssl/xray.crt" ]]; then
+		print_ok "The certificate file in the /ssl directory already exists"
+	fi
+
+	if [[ -f "/ssl/xray.key" || -f "/ssl/xray.crt" ]]; then
+		echo "Certificate file already exists"
+	elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+		echo "Certificate file already exists"
+		"$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --ecc
+		judge "Certificate enabled"
+	else
+		mkdir /ssl
+		cp -a $cert_dir/self_signed_cert.pem /ssl/xray.crt
+		cp -a $cert_dir/self_signed_key.pem /ssl/xray.key
+		ssl_install
+		acme
+	fi
+
+	# Xray runs as nobody user by default, certificate authority adaptation 
+	chown -R nobody.$cert_group /ssl/*
+}
+
+function generate_certificate() {
+	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+		signedcert=$(xray tls cert -domain="$local_ipv6" -name="$local_ipv6" -org="$local_ipv6" -expire=87600h)
+	else
+		signedcert=$(xray tls cert -domain="$local_ipv4" -name="$local_ipv4" -org="$local_ipv4" -expire=87600h)
+	fi
+	echo $signedcert | jq '.certificate[]' | sed 's/\"//g' | tee $cert_dir/self_signed_cert.pem
+	echo $signedcert | jq '.key[]' | sed 's/\"//g' >$cert_dir/self_signed_key.pem
+	openssl x509 -in $cert_dir/self_signed_cert.pem -noout || (print_error "Failed to generate self-signed certificate" && exit 1)
+	print_ok "Self-signed certificate generated successfully"
+	chown nobody.$cert_group $cert_dir/self_signed_cert.pem
+	chown nobody.$cert_group $cert_dir/self_signed_key.pem
+	if [[ ! -f /ssl ]]; then
+		mkdir /ssl
+		cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
+		cp $cert_dir/self_signed_key.pem /ssl/xray.key
+	else 
+		cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
+		cp $cert_dir/self_signed_key.pem /ssl/xray.key
+	fi
+}
+
+function configure_web() {
+	rm -rf /www/xray_web
+	mkdir -p /www/xray_web
+	print_ok "Do you configure fake web pages? [Y/N]"
+	read -r webpage
+	case $webpage in
+	[yY][eE][sS] | [yY])
+		wget -O web.tar.gz https://raw.githubusercontent.com/wulabing/Xray_onekey/main/basic/web.tar.gz
+		tar xzf web.tar.gz -C /var/www/html/
+		judge "site masquerading"
+		rm -f web.tar.gz
+		;;
+	*) ;;
+	esac
+}
+
+function xray_uninstall() {
+	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
+	rm -rf $website_dir/*
+	print_ok "Do you want to uninstall Nginx [Y/N]?"
+	read -r uninstall_nginx
+	case $uninstall_nginx in
+	[yY][eE][sS] | [yY])
+		apt purge nginx -y
+		;;
+	*) ;;
+	esac
+	print_ok "Uninstall acme.sh [Y/N]?"
+	read -r uninstall_acme
+	case $uninstall_acme in
+	[yY][eE][sS] | [yY])
+		"$HOME"/.acme.sh/acme.sh --uninstall
+		rm -rf /root/.acme.sh
+		rm -rf /ssl/
+		;;
+	*) ;;
+	esac
+	print_ok "Uninstall complete"
+	exit 0
+}
+
+function restart_all() {
+  systemctl restart nginx
+  judge "Nginx start"
+  systemctl restart xray
+  judge "Xray start"
+}
+
+function bbr_boost() {
+  wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+}
 
 function greetings_screen() {
 	echo -e '=============================================================================
@@ -275,5 +495,3 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 
 	echo -e "\n${Color_Off}============================================================================="
 }
-
-check_bash
