@@ -482,6 +482,11 @@ function restart_all() {
   judge "Xray start"
 }
 
+function restart_xray() {
+  systemctl restart xray
+  judge "Xray start"
+}
+
 function bbr_boost() {
   wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
@@ -506,7 +511,7 @@ function vmess_ws() {
 	modify_port
 	modify_UUID
 	modify_ws
-	restart_all
+	restart_xray
 	vmess_ws_link
 }
 
