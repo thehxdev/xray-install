@@ -453,16 +453,14 @@ function configure_web() {
 function xray_uninstall() {
 	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
 	rm -rf $website_dir/*
-	print_ok "Do you want to uninstall Nginx [Y/N]?"
-	read -r uninstall_nginx
+	read -r "Do you want to uninstall Nginx [y/n]?" uninstall_nginx
 	case $uninstall_nginx in
 	[yY][eE][sS] | [yY])
 		apt purge nginx -y
 		;;
 	*) ;;
 	esac
-	print_ok "Uninstall acme.sh [Y/N]?"
-	read -r uninstall_acme
+	read -r "Uninstall acme.sh [y/n]?" uninstall_acme
 	case $uninstall_acme in
 	[yY][eE][sS] | [yY])
 		"$HOME"/.acme.sh/acme.sh --uninstall
@@ -540,7 +538,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	fi
 
 	echo -e "${Green}1. VMESS + WS${Color_Off}"
-	echo -e "${Green}2. Uninstall Xray${Color_Off}"
+	echo -e "${Red}2. Uninstall Xray${Color_Off}"
 	read -rp "Enter an Option:" menu_num
 	case $menu_num in
 	1)
