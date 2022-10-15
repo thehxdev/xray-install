@@ -9,7 +9,7 @@ Yellow='\033[0;33m'       # Yellow
 Blue='\033[0;34m'         # Blue
 Purple='\033[0;35m'       # Purple
 Cyan='\033[0;36m'         # Cyan
-White='\033[0;37m'        # White
+White='\033[0;37m'        # White Variables
 
 # Variables
 github_branch="main"
@@ -65,8 +65,7 @@ function check_bash() {
 # Check root
 function check_root() {
     if [[ "$EUID" -ne 0 ]]; then
-        print_error "This installer needs to be run with superuser privileges.
-        Login as root user and run the script again!\n"
+        print_error "This installer needs to be run with superuser privileges. Login as root user and run the script again!\n"
         exit
     else 
         print_ok "Root user checked!" ; $SLEEP
@@ -85,28 +84,18 @@ function check_os() {
         print_ok "Debian detected!"
     else
         print_error "This installer seems to be running on an unsupported distribution.
-        Supported distros are Debian and Ubuntu."
+        Supported distros are ${Yellow}Debian${Color_Off} and ${Yellow}Ubuntu${Color_Off}."
         exit
     fi
-if [[ "$os" == "ubuntu" && "$os_version" -lt 2004 ]]; then
-        print_error "Ubuntu 20.04 or higher is required to use this installer.
+	if [[ "$os" == "ubuntu" && "$os_version" -lt 2004 ]]; then
+        print_error "${Yellow}Ubuntu 20.04${Color_Off} or higher is required to use this installer.
         This version of Ubuntu is too old and unsupported."
         exit
     elif [[ "$os" == "debian" && "$os_version" -lt 11 ]]; then
-        print_error "Debian 11 or higher is required to use this installer.
+        print_error "${Yellow}Debian 11${Color_Off} or higher is required to use this installer.
         This version of fedora is too old and unsupported."
         exit
     fi
-}
-
-function cloudflare_dns_v4() {
-    echo "nameserver 1.1.1.1" > /etc/resolv.conf
-    echo "nameserver 1.0.0.1" >> /etc/resolv.conf
-}
-
-function cloudflare_dns_v6() {
-    echo "nameserver 2606:4700:4700::1111" > /etc/resolv.conf
-    echo "nameserver 2606:4700:4700::1001" >> /etc/resolv.conf
 }
 
 function disable_firewalls() {
@@ -178,6 +167,23 @@ function basic_optimization() {
     echo '* hard nofile 65536' >>/etc/security/limits.conf
 }
 
+function ip_check() {
+    local_ipv4=$(curl -s4m8 https://ip.gs)
+    local_ipv6=$(curl -s6m8 https://ip.gs)
+}
+
+function cloudflare_dns() {
+    if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+		echo "nameserver 2606:4700:4700::1111" > /etc/resolv.conf
+		echo "nameserver 2606:4700:4700::1001" >> /etc/resolv.conf
+		print_ok "server dns changed to cloudflare"
+	else
+		echo "nameserver 1.1.1.1" > /etc/resolv.conf
+		echo "nameserver 1.0.0.1" >> /etc/resolv.conf
+		print_ok "server dns changed to cloudflare"
+	fi
+}
+
 function domain_check() {
     read -rp "Please enter your domain name information (example: www.google.com):" domain
     domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
@@ -194,7 +200,7 @@ function domain_check() {
     if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
         # Pure IPv6 VPS, automatically add DNS64 server for acme.sh to apply for certificate
         echo -e nameserver 2606:4700:4700::1111 > /etc/resolv.conf
-        print_ok "Recognize VPS as IPv6 Only, automatically add DNS64 server"
+        print_ok "Recognized VPS as IPv6 Only, automatically add DNS64 server"
     fi
     echo -e "DNS-resolved IP address of the domain name: ${domain_ip}"
     echo -e "Local public network IPv4 address ${local_ipv4}"
@@ -239,8 +245,8 @@ function port_exist_check() {
 }
 
 function modify_port() {
-    read -rp "Please enter the port number (default: 443): " PORT
-    [ -z "$PORT" ] && PORT="443"
+    read -rp "Please enter the port number (default: 8080): " PORT
+    [ -z "$PORT" ] && PORT="8080"
     if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
         print_error "Port must be in range of 0-65535"
         exit 1
@@ -260,42 +266,60 @@ function xray_tmp_config_file_check_and_use() {
     touch ${xray_conf_dir}/config_tmp.json
 }
 
-function configure_nginx() {
+function conf_nginx_notls() {
     nginx_conf="/etc/nginx/sites-available/default"
     rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_default_sample.conf
-    if [[ -f $nginx_conf ]]; then
-        sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-        sed -i "s|CERT_PATH|/ssl/xray.crt|g" ${nginx_conf}
-        sed -i "s|KEY_PATH|/ssl/xray.key|g" ${nginx_conf}
-        judge "Nginx config modification"
-    fi
+	judge "nginx config download"
+
+	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+	judge "Nginx config modification"
+
     systemctl enable nginx
     systemctl restart nginx
+}
+
+function conf_nginx_tls() {
+	nginx_conf="/etc/nginx/sites-available/default"
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_default_sample_tls.conf
+	judge "nginx config download"
+
+	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+	judge "Nginx config modification"
+
+	systemctl enable nginx
+	systemctl restart nginx
 }
 
 function configure_nginx_reverse_proxy() {
-    nginx_conf="/etc/nginx/sites-available/default"
-    rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy.conf
-    sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-    judge "Nginx config modification"
-    systemctl enable nginx
-    systemctl restart nginx
+	nginx_conf="/etc/nginx/sites-available/default"
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy.conf
+
+	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+	judge "Nginx config modification"
+
+	systemctl enable nginx
+	systemctl restart nginx
+}
+
+function nginx_ssl_configuraion() {
+	sed -i "s|CERT_PATH|/ssl/xray.crt|g" ${nginx_conf}
+	sed -i "s|KEY_PATH|/ssl/xray.key|g" ${nginx_conf}
 }
 
 function configure_certbot_nginx() {
-    installit certbot python3-certbot-nginx
-    judge "certbot python3-certbot-nginx Installation"
-    certbot --nginx
-    judge "certbot ssl certification for nginx"
+	installit certbot python3-certbot-nginx
+	judge "certbot python3-certbot-nginx Installation"
+	certbot --nginx
+	judge "certbot ssl certification for nginx"
 }
 
 function renew_certbot_ssl() {
-    certbot renew --dry-run
-    judge "SSL renew"
+	certbot renew --dry-run
+	judge "SSL renew"
 }
 
 function add_wsPath_to_nginx() {
-    sed -i "s/wsPATH/${WS_PATH}/g" ${nginx_conf}
+	sed -i "s/wsPATH/${WS_PATH}/g" ${nginx_conf}
 }
 
 function xray_install() {
@@ -331,58 +355,58 @@ function modify_fallback_ws() {
 }
 
 function modify_ws() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray ws"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray ws"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function configure_xray() {
-    rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/xray_xtls-rprx-direct.json
-    modify_UUID
-    modify_port
+	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/xray_xtls-rprx-direct.json
+	modify_UUID
+	modify_port
 }
 
 function ssl_install() {
-    curl -L https://get.acme.sh | bash
-    judge "Install the SSL certificate generation script"
+	curl -L https://get.acme.sh | bash
+	judge "Install the SSL certificate generation script"
 }
 
 function acme() {
-    "$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+	"$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
 
     sed -i "6s/^/#/" "$nginx_conf"
     sed -i "6a\\\troot $website_dir;" "$nginx_conf"
     systemctl restart nginx
 
     if "$HOME"/.acme.sh/acme.sh --issue --insecure -d "${domain}" --webroot "$website_dir" -k ec-256 --force; then
-        print_ok "SSL certificate generated successfully"
-        sleep 2
-        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
-        print_ok "SSL certificate configured successfully"
-        sleep 2
-        if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
-            wg-quick up wgcf >/dev/null 2>&1
-            print_ok "wgcf-warp started"
-        fi
+		print_ok "SSL certificate generated successfully"
+		sleep 2
+		if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
+			print_ok "SSL certificate configured successfully"
+			sleep 2
+			if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
+				wg-quick up wgcf >/dev/null 2>&1
+				print_ok "wgcf-warp started"
+			fi
         fi
     elif "$HOME"/.acme.sh/acme.sh --issue --insecure -d "${domain}" --webroot "$website_dir" -k ec-256 --force --listen-v6; then
         print_ok "SSL certificate generated successfully"
         sleep 2
         if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
-        print_ok "SSL certificate configured successfully"
-        sleep 2
-        if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
-            wg-quick up wgcf >/dev/null 2>&1
-            print_ok "wgcf-warp started"
-        fi
+			print_ok "SSL certificate configured successfully"
+			sleep 2
+			if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
+				wg-quick up wgcf >/dev/null 2>&1
+				print_ok "wgcf-warp started"
+			fi
         fi
     else
         print_error "SSL certificate generation failed"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
         if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
-        wg-quick up wgcf >/dev/null 2>&1
-        print_ok "wgcf-warp started"
+			wg-quick up wgcf >/dev/null 2>&1
+			print_ok "wgcf-warp started"
         fi
         exit 1
     fi
@@ -493,14 +517,14 @@ function bbr_boost() {
   wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
 
-function vmess_ws_link() {
+function vmess_ws_link_gen() {
     read -rp "Choose config name: " config_name
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     SERVER_IP=$(ip -4 addr | grep -E 'inet' | cut -d ' ' -f 6 | cut -f 1 -d '/' | sed -n '2p')
-    server_link=$(echo -e "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
-    qrencode -t ansiutf8 -l L "$server_link"
+    qrencode -t ansiutf8 -l L $server_link
     echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
 }
 
@@ -517,12 +541,12 @@ function vmess_ws() {
     modify_UUID
     modify_ws
     restart_xray
-    vmess_ws_link
+    vmess_ws_link_gen
 }
 
 function greetings_screen() {
     clear
-    echo -e '=============================================================================
+    echo -e '
 
 $$\   $$\ $$$$$$$\   $$$$$$\ $$\     $$\       $$\   $$\ $$\   $$\ 
 $$ |  $$ |$$ .__$$\ $$  __$$\ $$\   $$  |      $$ |  $$ |$$ |  $$ |
@@ -545,14 +569,20 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
         echo -e "${Color_Off}Version = ${Blue}${os_version}\n"
     fi
 
+	echo -e "========== VMESS =========="
     echo -e "${Green}1. VMESS + WS${Color_Off}"
-    echo -e "${Red}2. Uninstall Xray${Color_Off}"
+	echo -e "========== Settings =========="
+	echo -e "${Green}2. Change vps DNS to Cloudflare"
+    echo -e "${Red}3. Uninstall Xray${Color_Off}"
     read -rp "Enter an Option: " menu_num
     case $menu_num in
     1)
         vmess_ws
         ;;
-    2)
+	2)
+		cloudflare_dns
+		;;
+    3)
         xray_uninstall
         ;;
     *)
