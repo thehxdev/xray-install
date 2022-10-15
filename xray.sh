@@ -159,6 +159,9 @@ function install_deps() {
     installit libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
     judge "install libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev"
 
+    installit qrencode
+    judge "install qrencode"
+
     installit jq
     if ! command -v jq >/dev/null 2>&1; then
     wget -P /usr/bin https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/binary/jq && chmod +x /usr/bin/jq
@@ -497,6 +500,7 @@ function vmess_ws_link() {
     SERVER_IP=$(ip -4 addr | grep -E 'inet' | cut -d ' ' -f 6 | cut -f 1 -d '/' | sed -n '2p')
     server_link=$(echo "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64)
 
+    qrencode -t ansiutf8 -l L "$server_link"
     echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
 }
 
