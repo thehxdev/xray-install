@@ -308,26 +308,30 @@ function xray_install() {
 function modify_UUID() {
 	[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
-	xray_tmp_config_file_check_and_use
 	judge "modify Xray TCP UUID"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function modify_UUID_ws() {
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
-	xray_tmp_config_file_check_and_use
 	judge "modify Xray ws UUID"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function modify_fallback_ws() {
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
-	xray_tmp_config_file_check_and_use
 	judge "modify Xray fallback_ws"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function modify_ws() {
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
-	xray_tmp_config_file_check_and_use
 	judge "modify Xray ws"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function configure_xray() {
