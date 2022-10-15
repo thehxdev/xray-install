@@ -453,14 +453,14 @@ function configure_web() {
 function xray_uninstall() {
 	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
 	rm -rf $website_dir/*
-	read -r "Do you want to uninstall Nginx [y/n]?" uninstall_nginx
+	read -rp "Do you want to uninstall Nginx [y/n]?" uninstall_nginx
 	case $uninstall_nginx in
 	[yY][eE][sS] | [yY])
 		apt purge nginx -y
 		;;
 	*) ;;
 	esac
-	read -r "Uninstall acme.sh [y/n]?" uninstall_acme
+	read -rp "Uninstall acme.sh [y/n]?" uninstall_acme
 	case $uninstall_acme in
 	[yY][eE][sS] | [yY])
 		"$HOME"/.acme.sh/acme.sh --uninstall
