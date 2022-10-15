@@ -490,11 +490,13 @@ function bbr_boost() {
 }
 
 function vmess_ws_link() {
+    read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
 	SERVER_IP=$(ip -4 addr | grep -E 'inet' | cut -d ' ' -f 6 | cut -f 1 -d '/' | sed -n '2p')
+	server_link=$(echo "{"add": "$SERVER_IP","aid": "0","host": "","id": "$UUID","net": "ws","path": "$WS_PATH","port": "$PORT","ps": "$config_name","sni": "","tls": "","type": "","v": "2"}" | base64)
 
-	print_ok "vmess://$UUID@$SERVER_IP:$PORT?path=/$WS_PATH&security=none#xray_hx_config1"
+	print_ok "${Green}VMESS Link: ${Yellow}vmess://$server_link"
 }
 
 function vmess_ws() {
