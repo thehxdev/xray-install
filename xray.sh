@@ -498,9 +498,9 @@ function vmess_ws_link() {
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     SERVER_IP=$(ip -4 addr | grep -E 'inet' | cut -d ' ' -f 6 | cut -f 1 -d '/' | sed -n '2p')
-    server_link=$(echo "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64)
+    server_link=$(echo -e "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
-    qrencode -t ansiutf8 -l L "$server_link"
+    qrencode -t ansiutf8 -l L $server_link
     echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
 }
 
