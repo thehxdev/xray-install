@@ -16,9 +16,7 @@ github_branch="main"
 xray_conf_dir="/usr/local/etc/xray"
 website_dir="/var/www/html"
 xray_access_log="/var/log/xray/access.log"
-xray_error_log="/var/log/xray/error.log"
-cert_dir="/root/.ssl/"
-domain_tmp_dir="/usr/local/etc/xray"
+xray_error_log="/var/log/xray/error.log" cert_dir="/root/.ssl/" domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
@@ -347,8 +345,7 @@ function modify_UUID_ws() {
     judge "change tmp file to main file"
 }
 
-function modify_fallback_ws() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
+function modify_fallback_ws() { cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
     judge "modify Xray fallback_ws"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
@@ -536,7 +533,7 @@ function vmess_ws() {
     install_deps
     basic_optimization
     xray_install
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket/config_server.json
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-s/config_server.json
     modify_port
     modify_UUID
     modify_ws
