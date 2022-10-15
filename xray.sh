@@ -421,8 +421,7 @@ function generate_certificate() {
     echo $signedcert | jq '.certificate[]' | sed 's/\"//g' | tee $cert_dir/self_signed_cert.pem
     echo $signedcert | jq '.key[]' | sed 's/\"//g' >$cert_dir/self_signed_key.pem
     openssl x509 -in $cert_dir/self_signed_cert.pem -noout || (print_error "Failed to generate self-signed certificate" && exit 1)
-    print_ok "Self-signed certificate generated successfully"
-    chown nobody.$cert_group $cert_dir/self_signed_cert.pem
+    print_ok "Self-signed certificate generated successfully" chown nobody.$cert_group $cert_dir/self_signed_cert.pem
     chown nobody.$cert_group $cert_dir/self_signed_key.pem
     if [[ ! -f /ssl ]]; then
         mkdir /ssl
@@ -496,9 +495,9 @@ function vmess_ws_link() {
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     SERVER_IP=$(ip -4 addr | grep -E 'inet' | cut -d ' ' -f 6 | cut -f 1 -d '/' | sed -n '2p')
-    server_link=$(echo "{"add": "$SERVER_IP","aid": "0","host": "","id": "$UUID","net": "ws","path": "$WS_PATH","port": "$PORT","ps": "$config_name","scy": "chacha20-poly1305","sni": "","tls": "","type": "","v": "2"}" | base64)
+    server_link=$(echo "{\"add\": \"${SERVER_IP}\",\"aid\": \"0\",\"host\": \"\",\"id\": \"${UUID}\",\"net\": \"ws\",\"path\": \"${WS_PATH}\",\"port\": \"${PORT}\",\"ps\": \"${config_name}\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64)
 
-    print_ok "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
+    echo "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
 }
 
 function vmess_ws() {
