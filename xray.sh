@@ -526,6 +526,17 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		echo -e "${Color_Off}Version = ${Blue}${os_version}"
 	elif [[ "$os" == "ubuntu" ]]; then
 		echo -e "${Color_Off}OS = ${Blue}Ubuntu"
-		echo -e "${Color_Off}Version = ${Blue}${os_version}"
+		echo -e "${Color_Off}Version = ${Blue}${os_version}\n"
 	fi
+
+	echo -e "${Green}1. VMESS + WS"
+	read -rp "Enter an Option:" menu_num
+	case $menu_num in
+	1)
+		vmess_ws
+		;;
+	*)
+		print_error "Not a valid option"
+		;;
+	esac
 }
