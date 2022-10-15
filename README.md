@@ -2,8 +2,11 @@
 
 Xray installation and configuraion script for **`Ubuntu`** and **`Debian`**.
 
-Project is **not** completed yet...
-
 ```bash
-bash -c "$(curl -L https://raw.githubusercontent.com/thehxdev/xray-install/main/xray.sh)"
+bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 ```
+
+## Supported protocols
+
+1. [VMESS + WS](https://github.com/thehxdev/xray-examples/tree/main/VMess-Websocket-s)
+
