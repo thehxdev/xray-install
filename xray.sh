@@ -254,6 +254,7 @@ function xray_tmp_config_file_check_and_use() {
 	else
 		print_error "can't modify xray config file!"
 	fi
+	touch ${xray_conf_dir}/config_tmp.json
 }
 
 function configure_nginx() {
