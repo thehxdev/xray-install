@@ -530,11 +530,15 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		echo -e "${Color_Off}Version = ${Blue}${os_version}\n"
 	fi
 
-	echo -e "${Green}1. VMESS + WS"
+	echo -e "${Green}1. VMESS + WS${Color_Off}"
+	echo -e "${Green}2. Uninstall Xray${Color_Off}"
 	read -rp "Enter an Option:" menu_num
 	case $menu_num in
 	1)
 		vmess_ws
+		;;
+	2)
+		xray_uninstall
 		;;
 	*)
 		print_error "Not a valid option"
