@@ -775,8 +775,8 @@ function vmess_ws_nginx_tls() {
     basic_optimization
 	ip_check
 	domain_check
-    xray_install
 	configure_certbot
+    xray_install
 	install_nginx
 	configure_nginx_reverse_proxy_tls
 	add_wsPath_to_nginx
