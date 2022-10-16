@@ -572,6 +572,7 @@ function vmess_ws() {
 	ip_check
     xray_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-s/config_server.json
+	judge "configuration download"
     modify_port
     modify_UUID
     modify_ws
@@ -581,7 +582,7 @@ function vmess_ws() {
 
 # ==== VMESS + WS + TLS ====
 
-function vmess_ws_link_gen() {
+function vmess_ws_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
@@ -604,6 +605,7 @@ function vmess_ws_tls() {
 	configure_certbot
 	#ssl_judge_and_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
+	judge "configuration download"
     modify_port
     modify_UUID
     modify_ws
