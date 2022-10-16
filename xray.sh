@@ -14,8 +14,7 @@ White='\033[0;37m'        # White Variables
 # Variables
 github_branch="main"
 xray_conf_dir="/usr/local/etc/xray"
-website_dir="/var/www/html"
-xray_access_log="/var/log/xray/access.log"
+website_dir="/var/www/html" xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
 cert_dir="/root/.ssl/"
 domain_tmp_dir="/usr/local/etc/xray"
@@ -193,7 +192,8 @@ function cloudflare_dns() {
 
 function domain_check() {
     read -rp "Please enter your domain name information (example: www.google.com):" domain
-    domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
+    #domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
+	domain_ip=$(dig +short "${domain}")
     print_ok "Getting domain IP address information, please be wait..."
     #wgcfv4_status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
     #wgcfv6_status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
