@@ -213,10 +213,10 @@ function domain_check() {
     echo -e "Local public network IPv4 address ${local_ipv4}"
     echo -e "Local public network IPv6 address ${local_ipv6}"
     sleep 2
-    if [[ ${domain_ip} -eq ${local_ipv4} ]]; then
+    if [[ "${domain_ip}" == "${local_ipv4}" ]]; then
         print_ok "The DNS-resolved IP address of the domain name matches the native IPv4 address"
         sleep 2
-    elif [[ ${domain_ip} -eq ${local_ipv6} ]]; then
+    elif [[ "${domain_ip}" == "${local_ipv6}" ]]; then
         print_ok "The DNS-resolved IP address of the domain name matches the native IPv6 address"
         sleep 2
     else
