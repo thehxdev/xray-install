@@ -27,7 +27,7 @@ PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
 OK="${Green}[OK]"
 ERROR="${Red}[ERROR]"
 
-SLEEP="sleep 0.5"
+SLEEP="sleep 1"
 
 #print OK
 function print_ok() {
@@ -501,6 +501,23 @@ function configure_certbot() {
 	keyFile="/ssl/xray.key"
 }
 
+function configure_certbot_reverse_proxy() {
+	mkdir /ssl >/dev/null 2>&1
+	installit certbot python3-certbot
+	judge "certbot python3-certbot Installation"
+	certbot certonly --preferred-challenges http -d $domain
+	judge "certbot ssl certification"
+
+	cp /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
+	judge "copy cert file"
+	cp /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
+	judge "copy key file"
+
+    chown -R nobody.$cert_group /ssl/*
+	certFile="/ssl/xray.crt"
+	keyFile="/ssl/xray.key"
+}
+
 function renew_certbot() {
 	certbot renew --dry-run
 	judge "SSL renew"
@@ -733,6 +750,7 @@ function vmess_ws_nginx() {
     xray_install
 	install_nginx
 	configure_nginx_reverse_proxy_notls
+	setup_fake_website
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
 	judge "Download configuration"
     modify_UUID
@@ -763,11 +781,12 @@ function vmess_ws_nginx_tls() {
 	ip_check
 	domain_check
     xray_install
-	install_nginx
 	configure_certbot
+	install_nginx
 	configure_nginx_reverse_proxy_tls
 	add_wsPath_to_nginx
 	nginx_ssl_configuraion
+	setup_fake_website
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-TLS-s/server_config.json
 	judge "Download configuration"
 	modify_UUID
