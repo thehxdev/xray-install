@@ -818,7 +818,6 @@ function vmess_ws_nginx_tls() {
 	install_nginx
 	configure_nginx_reverse_proxy_tls
 	add_wsPath_to_nginx
-	#nginx_ssl_configuraion
 	setup_fake_website
 	restart_nginx
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-TLS-s/server_config.json
@@ -826,8 +825,7 @@ function vmess_ws_nginx_tls() {
 	modify_UUID
 	modify_ws
 	restart_all
-	#send_go_and_gost
-    vmess_ws_nginx_link_gen
+    vmess_ws_nginx_tls_link_gen
 }
 
 
