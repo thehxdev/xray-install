@@ -120,12 +120,8 @@ function disable_firewalls() {
 }
 
 function install_nginx() {
-    if ! command -v nginx >/dev/null 2>&1; then
-        installit nginx
-        judge "install Nginx"
-    else
-        print_ok "Nginx Already Installed!"
-    fi
+	installit nginx
+	judge "install Nginx"
 }
 
 function install_deps() {
