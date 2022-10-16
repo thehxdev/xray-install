@@ -380,12 +380,11 @@ function configure_certbot() {
 	certbot certonly --standalone --preferred-challenges http -d $domain
 	judge "certbot ssl certification"
 
-	if [[ -f "/etc/letsencrypt/live/${domain}" ]]; then
-		cp -a /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
-		judge "cert file copy"
-		cp -a /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
-		judge "key file copy"
-	fi
+	cp /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
+	judge "copy cert file"
+	cp /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
+	judge "copy key file"
+
     chown -R nobody.$cert_group /ssl/*
 	certFile="/ssl/xray.crt"
 	keyFile="/ssl/xray.key"
