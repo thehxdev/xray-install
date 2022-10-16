@@ -589,29 +589,28 @@ function vmess_ws_tls_link_gen() {
 	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
-	echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
+	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
 }
 
 function vmess_ws_tls() {
-    check_bash
-    check_root
-    check_os
-    disable_firewalls
-    install_deps
-    basic_optimization
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
 	ip_check
 	domain_check
-    xray_install
+	xray_install
 	configure_certbot
-	#ssl_judge_and_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
 	judge "configuration download"
-    modify_port
-    modify_UUID
-    modify_ws
+	modify_port
+	modify_UUID
+	modify_ws
 	modify_tls
-    restart_xray
-    vmess_ws_tls_link_gen
+	restart_xray
+	vmess_ws_tls_link_gen
 }
 
 function greetings_screen() {
