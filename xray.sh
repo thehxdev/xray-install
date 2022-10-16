@@ -528,20 +528,39 @@ function xray_uninstall() {
         ;;
     *) ;;
     esac
-    print_ok "Uninstall ssl certs [y/n]?"
+
+    print_ok "Uninstall acme [y/n]?"
     read -r uninstall_acme
     case $uninstall_acme in
     [yY][eE][sS] | [yY])
         "$HOME"/.acme.sh/acme.sh --uninstall
 		apt purge certbot python3-certbot -y
         rm -rf /root/.acme.sh
-        rm -rf /ssl/
+        ;;
+    *) ;;
+    esac
+
+	print_ok "Uninstall certbot? [y/n]?"
+    read -r uninstall_certbot
+    case $uninstall_acme in
+    [yY][eE][sS] | [yY])
+		apt purge certbot python3-certbot -y
 		rm -rf /etc/letsencrypt/
 		rm -rf /var/log/letsencrypt/
 		rm -rf /etc/systemd/system/*certbot*
         ;;
     *) ;;
     esac
+
+	print_ok "Remove SSL certificates? [y/n]?"
+	read -r remove_ssl_certs
+	case $remove_ssl_certs in 
+		[yY][eE][sS] | [yY])
+        rm -rf /ssl/
+		;;
+	*) ;;
+	esac
+
     print_ok "Uninstall complete"
     exit 0
 }
