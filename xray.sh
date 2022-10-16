@@ -643,7 +643,7 @@ function vmess_ws_nginx() {
 	ip_check
     xray_install
 	install_nginx
-	nginx_reverse_proxy_notls
+	configure_nginx_reverse_proxy_notls
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/config_server.json
 	judge "configuration download"
     modify_UUID
