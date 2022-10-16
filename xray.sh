@@ -678,7 +678,7 @@ function vmess_ws_tls() {
 	domain_check
 	xray_install
 	configure_certbot
-	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
 	judge "configuration download"
 	modify_port
 	modify_UUID
