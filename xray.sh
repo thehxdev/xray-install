@@ -505,7 +505,7 @@ function configure_certbot_reverse_proxy() {
 	mkdir /ssl >/dev/null 2>&1
 	installit certbot python3-certbot-nginx
 	judge "certbot python3-certbot-nginx Installation"
-	certbot certonly --webroot /ssl/ --preferred-challenges http --register-unsafely-without-email -d $domain
+	certbot certonly --webroot --webroot-path /var/www/html --preferred-challenges http --register-unsafely-without-email -d $domain
 	judge "certbot ssl certification"
 
 	cp /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
