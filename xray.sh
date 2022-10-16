@@ -22,6 +22,7 @@ cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
 
 OK="[${Green}OK${Color_Off}]"
 ERROR="[${Red}ERROR${Color_Off}]"
@@ -251,19 +252,6 @@ function port_exist_check() {
     fi
 }
 
-function modify_port() {
-    read -rp "Please enter the port number (default: 8080): " PORT
-    [ -z "$PORT" ] && PORT="8080"
-    if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
-        print_error "Port must be in range of 0-65535"
-        exit 1
-    fi
-    port_exist_check $PORT
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${xray_conf_dir}/config_tmp.json
-    xray_tmp_config_file_check_and_use
-    judge "Xray port modification"
-}
-
 function xray_tmp_config_file_check_and_use() {
     if [[ -s ${xray_conf_dir}/config_tmp.json ]]; then
         mv -f ${xray_conf_dir}/config_tmp.json ${xray_conf_dir}/config.json
@@ -330,6 +318,19 @@ function xray_install() {
 	judge "add nobody group"
 }
 
+function modify_port() {
+    read -rp "Please enter the port number (default: 8080): " PORT
+    [ -z "$PORT" ] && PORT="8080"
+    if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
+        print_error "Port must be in range of 0-65535"
+        exit 1
+    fi
+    port_exist_check $PORT
+    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${xray_conf_dir}/config_tmp.json
+    xray_tmp_config_file_check_and_use
+    judge "Xray port modification"
+}
+
 function modify_UUID() {
     [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
     cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
@@ -368,6 +369,13 @@ function modify_tls() {
 	judge "modify Xray TLS Key File"
 	xray_tmp_config_file_check_and_use
 	judge "change tmp file to main file"
+}
+
+function modify_PASSWORD() {
+    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
+    judge "modify Xray Trojan Password"
+    xray_tmp_config_file_check_and_use
+    judge "change tmp file to main file"
 }
 
 #function configure_xray() {
@@ -555,6 +563,8 @@ function bbr_boost() {
 	wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
 
+# ========== VMESS ========== #
+
 # ==== VMESS + WS ====
 
 function vmess_ws_link_gen() {
@@ -618,6 +628,45 @@ function vmess_ws_tls() {
 	vmess_ws_tls_link_gen
 }
 
+# ========== VMESS ========== #
+
+
+# ========== Trojan ========== #
+
+# ==== Torojan + TLS ====
+
+function trojan_tcp_tls_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$domain&security=tls&type=tcp#$config_name")
+
+	qrencode -t ansiutf8 -l L trojan://${server_link}
+	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
+}
+
+function trojan_tcp_tls() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	domain_check
+	xray_install
+	configure_certbot
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-TCP-TLS-s/config_server.json
+	judge "configuration download"
+	modify_port
+	modify_PASSWORD
+	modify_tls
+	restart_xray
+	trojan_tcp_tls_link_gen
+}
+
+# ===================================== #
+
 function greetings_screen() {
     clear
     echo -e '
@@ -646,9 +695,11 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "==========  VMESS  =========="
     echo -e "${Green}1. VMESS + WS${Color_Off}"
 	echo -e "${Green}2. VMESS + WS + TLS${Color_Off}"
+	echo -e "==========  TROJAN  =========="
+	echo -e "${Green}3. Trojan + TCP + TLS${Color_Off}"
 	echo -e "========== Settings =========="
-	echo -e "${Green}3. Change vps DNS to Cloudflare${Color_Off}"
-    echo -e "${Red}4. Uninstall Xray${Color_Off}"
+	echo -e "${Green}4. Change vps DNS to Cloudflare${Color_Off}"
+    echo -e "${Red}5. Uninstall Xray${Color_Off}"
     read -rp "Enter an Option: " menu_num
     case $menu_num in
     1)
@@ -658,9 +709,12 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		vmess_ws_tls
 		;;
 	3)
+		trojan_tcp_tls
+		;;
+	4)
 		cloudflare_dns
 		;;
-    4)
+    5)
         xray_uninstall
         ;;
     *)
