@@ -519,13 +519,14 @@ function xray_uninstall() {
         ;;
     *) ;;
     esac
-    print_ok "Uninstall acme.sh [y/n]?"
+    print_ok "Uninstall ssl certs [y/n]?"
     read -r uninstall_acme
     case $uninstall_acme in
     [yY][eE][sS] | [yY])
         "$HOME"/.acme.sh/acme.sh --uninstall
         rm -rf /root/.acme.sh
         rm -rf /ssl/
+		rm -rf /etc/letsencrypt/
         ;;
     *) ;;
     esac
