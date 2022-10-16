@@ -505,7 +505,8 @@ function configure_certbot_reverse_proxy() {
 	mkdir /ssl >/dev/null 2>&1
 	installit certbot python3-certbot
 	judge "certbot python3-certbot Installation"
-	certbot certonly --preferred-challenges http -d $domain
+	#certbot certonly --preferred-challenges dns -d $domain
+	certbot --nginx -d $domain
 	judge "certbot ssl certification"
 
 	cp /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
@@ -781,8 +782,8 @@ function vmess_ws_nginx_tls() {
 	ip_check
 	domain_check
     xray_install
-	configure_certbot
 	install_nginx
+	configure_certbot_reverse_proxy
 	configure_nginx_reverse_proxy_tls
 	add_wsPath_to_nginx
 	nginx_ssl_configuraion
