@@ -325,6 +325,9 @@ function xray_install() {
     # Import link for Xray generation
     echo $domain >$domain_tmp_dir/domain
     judge "Domain name record"
+	groupadd nobody
+	gpasswd -a nobody nobody
+	judge "add nobody group"
 }
 
 function modify_UUID() {
