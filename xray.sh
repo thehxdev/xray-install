@@ -284,15 +284,26 @@ function conf_nginx_tls() {
 	systemctl restart nginx
 }
 
-function configure_nginx_reverse_proxy() {
+function configure_nginx_reverse_proxy_tls() {
 	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy.conf
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy_tls.conf
+	judge "Nginx config Download"
 
 	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
 	judge "Nginx config modification"
 
 	systemctl enable nginx
 	systemctl restart nginx
+}
+
+function configure_nginx_reverse_proxy_notls() {
+	nginx_conf="/etc/nginx/sites-available/default"
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy_notls.conf
+	judge "Nginx config Download"
+
+	systemctl enable nginx
+	systemctl restart nginx
+	judge "nginx start"
 }
 
 function nginx_ssl_configuraion() {
@@ -302,6 +313,7 @@ function nginx_ssl_configuraion() {
 
 function add_wsPath_to_nginx() {
 	sed -i "s/wsPATH/${WS_PATH}/g" ${nginx_conf}
+	judge "Nginx config modification"
 }
 
 function xray_install() {
@@ -612,6 +624,28 @@ function vmess_ws() {
     vmess_ws_link_gen
 }
 
+# ==== VMESS + WS + Nginx ====
+
+function vmess_ws_nginx() {
+    check_bash
+    check_root
+    check_os
+    disable_firewalls
+    install_deps
+    basic_optimization
+	ip_check
+    xray_install
+	install_nginx
+	nginx_reverse_proxy_notls
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/config_server.json
+	judge "configuration download"
+    modify_UUID
+	modify_ws
+	add_wsPath_to_nginx
+	restart_all
+    vmess_ws_link_gen
+}
+
 # ==== VMESS + WS + TLS ====
 
 function vmess_ws_tls_link_gen() {
@@ -712,13 +746,14 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "==========  VMESS  =========="
     echo -e "${Green}1. VMESS + WS${Color_Off}"
 	echo -e "${Green}2. VMESS + WS + TLS${Color_Off}"
+	echo -e "${Green}3. VMESS + WS + Nginx (No TLS) - ${Red}(Not Tested)${Color_Off}"
 	echo -e "==========  TROJAN  =========="
-	echo -e "${Green}3. Trojan + TCP + TLS${Color_Off}"
+	echo -e "${Green}4. Trojan + TCP + TLS${Color_Off}"
 	echo -e "========== Settings =========="
-	echo -e "${Green}4. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}5. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
-    echo -e "${Red}6. Uninstall Xray${Color_Off}"
-    echo -e "${Yellow}7. Exit${Color_Off}\n"
+	echo -e "${Green}5. Change vps DNS to Cloudflare${Color_Off}"
+	echo -e "${Green}6. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
+    echo -e "${Red}7. Uninstall Xray${Color_Off}"
+    echo -e "${Yellow}8. Exit${Color_Off}\n"
 
     read -rp "Enter an Option: " menu_num
 	until [[ -z "$menu_num" || "$menu_num" =~ ^[1-7]$ ]]; do
@@ -734,18 +769,21 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		vmess_ws_tls
 		;;
 	3)
-		trojan_tcp_tls
+		vmess_ws_nginx
 		;;
 	4)
-		cloudflare_dns
+		trojan_tcp_tls
 		;;
 	5)
+		cloudflare_dns
+		;;
+	6)
 		bbr_boost
 		;;
-    6)
+    7)
         xray_uninstall
         ;;
-	7)
+	8)
 		exit
 		;;
     esac
