@@ -635,18 +635,22 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 
 	echo -e "==========  VMESS  =========="
     echo -e "${Green}1. VMESS + WS${Color_Off}"
+	echo -e "${Green}2. VMESS + WS + TLS ${Red}(NOT Tested)${Color_Off}"
 	echo -e "========== Settings =========="
-	echo -e "${Green}2. Change vps DNS to Cloudflare"
-    echo -e "${Red}3. Uninstall Xray${Color_Off}"
+	echo -e "${Green}3. Change vps DNS to Cloudflare"
+    echo -e "${Red}4. Uninstall Xray${Color_Off}"
     read -rp "Enter an Option: " menu_num
     case $menu_num in
     1)
         vmess_ws
         ;;
 	2)
+		vmess_ws_tls
+		;;
+	3)
 		cloudflare_dns
 		;;
-    3)
+    4)
         xray_uninstall
         ;;
     *)
