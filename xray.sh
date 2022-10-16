@@ -564,7 +564,7 @@ function vmess_ws_link_gen() {
 	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
-	echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
+	echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
 }
 
 function vmess_ws() {
@@ -594,7 +594,7 @@ function vmess_ws_tls_link_gen() {
 	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
-	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
+	echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
 }
 
 function vmess_ws_tls() {
