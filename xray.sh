@@ -765,7 +765,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
     echo -e "${Yellow}8. Exit${Color_Off}\n"
 
     read -rp "Enter an Option: " menu_num
-	until [[ -z "$menu_num" || "$menu_num" =~ ^[1-7]$ ]]; do
+	until [[ -z "$menu_num" || "$menu_num" =~ ^[1-8]$ ]]; do
 		echo "$menu_num: invalid selection."
 		read -rp "Enter an Option: " menu_num
 	done
