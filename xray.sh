@@ -477,7 +477,7 @@ function generate_certificate() {
     print_ok "Self-signed certificate generated successfully"
 	chown nobody.$cert_group $cert_dir/self_signed_cert.pem
     chown nobody.$cert_group $cert_dir/self_signed_key.pem
-    if [[ ! -f /ssl ]]; then
+    if [[ ! -f "/ssl" ]]; then
         mkdir /ssl
         cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
         cp $cert_dir/self_signed_key.pem /ssl/xray.key
@@ -597,9 +597,9 @@ function vmess_ws_tls() {
 	ip_check
 	domain_check
     xray_install
-	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
 	generate_certificate
 	ssl_judge_and_install
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
     modify_port
     modify_UUID
     modify_ws
