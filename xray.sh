@@ -302,6 +302,9 @@ function configure_nginx_reverse_proxy_notls() {
 	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_reverse_proxy_notls.conf
 	judge "Nginx config Download"
 
+	sed -i "s/YOUR_DOMAIN/${local_ipv4}/g" ${nginx_conf}
+	judge "Nginx config add ip"
+
 	systemctl enable --now nginx
 	judge "nginx start"
 	systemctl restart nginx
