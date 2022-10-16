@@ -768,7 +768,7 @@ function vmess_ws_nginx_tls() {
 	configure_nginx_reverse_proxy_tls
 	add_wsPath_to_nginx
 	nginx_ssl_configuraion
-	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-TLS-s/server_config.json
 	judge "Download configuration"
 	modify_UUID
 	modify_ws
