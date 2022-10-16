@@ -595,7 +595,6 @@ function bbr_boost() {
 # ========== VMESS ========== #
 
 # ==== VMESS + WS ====
-
 function vmess_ws_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
@@ -625,6 +624,14 @@ function vmess_ws() {
 }
 
 # ==== VMESS + WS + Nginx ====
+function vmess_ws_nginx_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"80\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+
+	qrencode -t ansiutf8 -l L vmess://${server_link}
+	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
+}
 
 function vmess_ws_nginx() {
     check_bash
@@ -643,7 +650,7 @@ function vmess_ws_nginx() {
 	modify_ws
 	add_wsPath_to_nginx
 	restart_all
-    vmess_ws_link_gen
+    vmess_ws_nginx_link_gen
 }
 
 # ==== VMESS + WS + TLS ====
@@ -684,7 +691,7 @@ function vmess_ws_tls() {
 
 # ========== Trojan ========== #
 
-# ==== Torojan + TLS ====
+# ==== Torojan + TCP + TLS ====
 
 function trojan_tcp_tls_link_gen() {
 	read -rp "Choose config name: " config_name
