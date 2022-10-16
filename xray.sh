@@ -16,7 +16,9 @@ github_branch="main"
 xray_conf_dir="/usr/local/etc/xray"
 website_dir="/var/www/html"
 xray_access_log="/var/log/xray/access.log"
-xray_error_log="/var/log/xray/error.log" cert_dir="/root/.ssl/" domain_tmp_dir="/usr/local/etc/xray"
+xray_error_log="/var/log/xray/error.log"
+cert_dir="/root/.ssl/"
+domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
@@ -168,6 +170,13 @@ function basic_optimization() {
 function ip_check() {
     local_ipv4=$(curl -s4m8 https://ip.gs)
     local_ipv6=$(curl -s6m8 https://ip.gs)
+    if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+		print_ok "Pure IPv6 server"
+		SERVER_IP=$(curl -s6m8 https://ip.gs)
+	else
+		print_ok "Server hase IPv4"
+		SERVER_IP=$(curl -s4m8 https://ip.gs)
+    fi
 }
 
 function cloudflare_dns() {
@@ -353,7 +362,8 @@ function modify_UUID_ws() {
     judge "change tmp file to main file"
 }
 
-function modify_fallback_ws() { cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
+function modify_fallback_ws() {
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
     judge "modify Xray fallback_ws"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
@@ -362,6 +372,17 @@ function modify_fallback_ws() { cat ${xray_conf_dir}/config.json | jq 'setpath([
 function modify_ws() {
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
 	judge "modify Xray ws"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
+}
+
+function modify_tls() {
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates","certificateFile"];"'${certFile}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray TLS Cert File"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates","keyFile"];"'${keyFile}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray TLS Key File"
 	xray_tmp_config_file_check_and_use
 	judge "change tmp file to main file"
 }
@@ -453,7 +474,8 @@ function generate_certificate() {
     echo $signedcert | jq '.certificate[]' | sed 's/\"//g' | tee $cert_dir/self_signed_cert.pem
     echo $signedcert | jq '.key[]' | sed 's/\"//g' >$cert_dir/self_signed_key.pem
     openssl x509 -in $cert_dir/self_signed_cert.pem -noout || (print_error "Failed to generate self-signed certificate" && exit 1)
-    print_ok "Self-signed certificate generated successfully" chown nobody.$cert_group $cert_dir/self_signed_cert.pem
+    print_ok "Self-signed certificate generated successfully"
+	chown nobody.$cert_group $cert_dir/self_signed_cert.pem
     chown nobody.$cert_group $cert_dir/self_signed_key.pem
     if [[ ! -f /ssl ]]; then
         mkdir /ssl
@@ -463,6 +485,8 @@ function generate_certificate() {
         cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
         cp $cert_dir/self_signed_key.pem /ssl/xray.key
     fi
+	certFile="/ssl/xray.crt"
+	keyFile="/ssl/xray.key"
 }
 
 function configure_web() {
@@ -507,30 +531,31 @@ function xray_uninstall() {
 }
 
 function restart_all() {
-  systemctl restart nginx
-  judge "Nginx start"
-  systemctl restart xray
-  judge "Xray start"
+	systemctl restart nginx
+	judge "Nginx start"
+	systemctl restart xray
+	judge "Xray start"
 }
 
 function restart_xray() {
-  systemctl restart xray
-  judge "Xray start"
+	systemctl restart xray
+	judge "Xray start"
 }
 
 function bbr_boost() {
-  wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
 
-function vmess_ws_link_gen() {
-    read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(ip -4 addr | grep -E 'inet' | cut -d ' ' -f 6 | cut -f 1 -d '/' | sed -n '2p')
-    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+# ==== VMESS + WS ====
 
-    qrencode -t ansiutf8 -l L vmess://${server_link}
-    echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
+function vmess_ws_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+
+	qrencode -t ansiutf8 -l L vmess://${server_link}
+	echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
 }
 
 function vmess_ws() {
@@ -540,6 +565,8 @@ function vmess_ws() {
     disable_firewalls
     install_deps
     basic_optimization
+	ip_check
+	domain_check
     xray_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-s/config_server.json
     modify_port
@@ -547,6 +574,38 @@ function vmess_ws() {
     modify_ws
     restart_xray
     vmess_ws_link_gen
+}
+
+# ==== VMESS + WS + TLS ====
+
+function vmess_ws_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+
+	qrencode -t ansiutf8 -l L vmess://${server_link}
+	echo -e "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}"
+}
+
+function vmess_ws_tls() {
+    check_bash
+    check_root
+    check_os
+    disable_firewalls
+    install_deps
+    basic_optimization
+	ip_check
+    xray_install
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
+	generate_certificate
+	ssl_judge_and_install
+    modify_port
+    modify_UUID
+    modify_ws
+	modify_tls
+    restart_xray
+    vmess_ws_tls_link_gen
 }
 
 function greetings_screen() {
