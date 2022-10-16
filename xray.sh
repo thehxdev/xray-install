@@ -377,7 +377,7 @@ function configure_certbot() {
 	mkdir /ssl >/dev/null 2>&1
 	installit certbot python3-certbot
 	judge "certbot python3-certbot Installation"
-	certbot certonly --standalone --preferred-challenges https -d $domain
+	certbot certonly --standalone --preferred-challenges http -d $domain
 	judge "certbot ssl certification"
 
 	if [[ -f /etc/letsencrypt/live/$domain ]]; then
