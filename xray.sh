@@ -503,10 +503,9 @@ function configure_certbot() {
 
 function configure_certbot_reverse_proxy() {
 	mkdir /ssl >/dev/null 2>&1
-	installit certbot python3-certbot python3-certbot-nginx
-	judge "certbot python3-certbot Installation"
-	#certbot certonly --preferred-challenges dns -d $domain
-	certbot --nginx -d $domain
+	installit certbot python3-certbot-nginx
+	judge "certbot python3-certbot-nginx Installation"
+	certbot certonly -d $domain
 	judge "certbot ssl certification"
 
 	cp /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
@@ -788,6 +787,7 @@ function vmess_ws_nginx_tls() {
 	add_wsPath_to_nginx
 	nginx_ssl_configuraion
 	setup_fake_website
+	restart_all
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-TLS-s/server_config.json
 	judge "Download configuration"
 	modify_UUID
