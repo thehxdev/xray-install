@@ -396,10 +396,10 @@ function renew_certbot() {
 	judge "SSL renew"
 }
 
-function acme_ssl_install() {
-	curl -L https://get.acme.sh | bash
-	judge "Install the SSL certificate generation script"
-}
+#function acme_ssl_install() {
+#	curl -L https://get.acme.sh | bash
+#	judge "Install the SSL certificate generation script"
+#}
 
 #function acme() {
 #	"$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
