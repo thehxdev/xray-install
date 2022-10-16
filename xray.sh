@@ -695,7 +695,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
     echo -e "${Green}1. VMESS + WS${Color_Off}"
 	echo -e "${Green}2. VMESS + WS + TLS${Color_Off}"
 	echo -e "==========  TROJAN  =========="
-	echo -e "${Green}3. Trojan + TCP + TLS ${Red}(NOT Tested)${Color_Off}"
+	echo -e "${Green}3. Trojan + TCP + TLS${Color_Off}"
 	echo -e "========== Settings =========="
 	echo -e "${Green}4. Change vps DNS to Cloudflare${Color_Off}"
 	echo -e "${Green}5. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
