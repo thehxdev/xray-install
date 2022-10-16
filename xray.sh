@@ -255,6 +255,13 @@ function xray_tmp_config_file_check_and_use() {
     touch ${xray_conf_dir}/config_tmp.json
 }
 
+function restart_nginx(){
+	systemctl enable --now nginx
+	judge "nginx start"
+	systemctl restart nginx
+	judge "Nginx restart"
+}
+
 #function conf_nginx_notls() {
 #    nginx_conf="/etc/nginx/sites-available/default"
 #    rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample.conf
@@ -286,11 +293,6 @@ function configure_nginx_reverse_proxy_tls() {
 
 	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
 	judge "Nginx config add domain"
-
-	systemctl enable --now nginx
-	judge "nginx start"
-	systemctl restart nginx
-	judge "Nginx restart"
 }
 
 function configure_nginx_reverse_proxy_notls() {
@@ -782,7 +784,7 @@ function vmess_ws_nginx_tls() {
 	add_wsPath_to_nginx
 	nginx_ssl_configuraion
 	setup_fake_website
-	restart_all
+	restart_nginx
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-TLS-s/server_config.json
 	judge "Download configuration"
 	modify_UUID
