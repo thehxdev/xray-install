@@ -301,9 +301,10 @@ function configure_nginx_reverse_proxy_notls() {
 	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy_notls.conf
 	judge "Nginx config Download"
 
-	systemctl enable nginx
-	systemctl restart nginx
+	systemctl enable --now nginx
 	judge "nginx start"
+	systemctl restart nginx
+	judge "nginx restart"
 }
 
 function nginx_ssl_configuraion() {
