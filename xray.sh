@@ -566,7 +566,6 @@ function vmess_ws() {
     install_deps
     basic_optimization
 	ip_check
-	domain_check
     xray_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-s/config_server.json
     modify_port
@@ -596,6 +595,7 @@ function vmess_ws_tls() {
     install_deps
     basic_optimization
 	ip_check
+	domain_check
     xray_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
 	generate_certificate
