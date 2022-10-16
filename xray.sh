@@ -726,6 +726,40 @@ function vmess_ws() {
     vmess_ws_link_gen
 }
 
+
+# ==== VMESS + WS + TLS ====
+
+function vmess_ws_tls_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+
+	qrencode -t ansiutf8 -l L vmess://${server_link}
+	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
+}
+
+function vmess_ws_tls() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	domain_check
+	xray_install
+	configure_certbot
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
+	judge "Download configuration"
+	modify_port
+	modify_UUID
+	modify_ws
+	modify_tls
+	restart_xray
+	vmess_ws_tls_link_gen
+}
+
 # ==== VMESS + WS + Nginx ====
 function vmess_ws_nginx_link_gen() {
 	read -rp "Choose config name: " config_name
@@ -758,7 +792,7 @@ function vmess_ws_nginx() {
 }
 
 # ==== VMESS + WS + Nginx + TLS ====
-#
+
 function vmess_ws_nginx_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
@@ -796,39 +830,6 @@ function vmess_ws_nginx_tls() {
     vmess_ws_nginx_link_gen
 }
 
-
-# ==== VMESS + WS + TLS ====
-
-function vmess_ws_tls_link_gen() {
-	read -rp "Choose config name: " config_name
-	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
-
-	qrencode -t ansiutf8 -l L vmess://${server_link}
-	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
-}
-
-function vmess_ws_tls() {
-	check_bash
-	check_root
-	check_os
-	disable_firewalls
-	install_deps
-	basic_optimization
-	ip_check
-	domain_check
-	xray_install
-	configure_certbot
-	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
-	judge "Download configuration"
-	modify_port
-	modify_UUID
-	modify_ws
-	modify_tls
-	restart_xray
-	vmess_ws_tls_link_gen
-}
 
 # ========== VMESS ========== #
 
