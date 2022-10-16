@@ -524,6 +524,7 @@ function xray_uninstall() {
     case $uninstall_acme in
     [yY][eE][sS] | [yY])
         "$HOME"/.acme.sh/acme.sh --uninstall
+		apt purge certbot python3-certbot
         rm -rf /root/.acme.sh
         rm -rf /ssl/
 		rm -rf /etc/letsencrypt/
