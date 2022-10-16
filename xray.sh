@@ -893,11 +893,6 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
     echo -e "${Yellow}12. Exit${Color_Off}\n"
 
     read -rp "Enter an Option: " menu_num
-	until [[ -z "$menu_num" || "$menu_num" =~ ^[1-12]$ ]]; do
-		echo "$menu_num: invalid selection."
-		read -rp "Enter an Option: " menu_num
-	done
-
     case $menu_num in
     1)
         vmess_ws
@@ -935,6 +930,9 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	12)
 		exit
 		;;
+	*)
+		print_error "Invalid Option. Run script again!"
+		exit 1
     esac
 }
 
