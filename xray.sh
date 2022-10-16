@@ -589,7 +589,7 @@ function vmess_ws() {
 	judge "configuration download"
     modify_port
     modify_UUID
-    modify_ws
+	modify_ws
     restart_xray
     vmess_ws_link_gen
 }
@@ -698,8 +698,16 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "${Green}3. Trojan + TCP + TLS ${Red}(NOT Tested)${Color_Off}"
 	echo -e "========== Settings =========="
 	echo -e "${Green}4. Change vps DNS to Cloudflare${Color_Off}"
-    echo -e "${Red}5. Uninstall Xray${Color_Off}"
+	echo -e "${Green}5. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
+    echo -e "${Red}6. Uninstall Xray${Color_Off}"
+    echo -e "${Yellow}7. Exit${Color_Off}\n"
+
     read -rp "Enter an Option: " menu_num
+	until [[ -z "$menu_num" || "$menu_num" =~ ^[1-7]$ ]]; do
+		echo "$menu_num: invalid selection."
+		read -rp "Enter an Option: " menu_num
+	done
+
     case $menu_num in
     1)
         vmess_ws
@@ -713,12 +721,15 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	4)
 		cloudflare_dns
 		;;
-    5)
+	5)
+		bbr_boost
+		;;
+    6)
         xray_uninstall
         ;;
-    *)
-        print_error "Not a valid option"
-        ;;
+	7)
+		exit
+		;;
     esac
 }
 
