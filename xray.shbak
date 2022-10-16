@@ -12,7 +12,7 @@ Cyan='\033[0;36m'         # Cyan
 White='\033[0;37m'        # White Variables
 
 # Variables 
-#github_branch="main"
+github_branch="main"
 xray_conf_dir="/usr/local/etc/xray"
 website_dir="/var/www/html" xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
@@ -153,7 +153,7 @@ function install_deps() {
 
     installit jq
     if ! command -v jq >/dev/null 2>&1; then
-    wget -P /usr/bin https://raw.githubusercontent.com/wulabing/Xray_onekey/main/binary/jq && chmod +x /usr/bin/jq
+    wget -P /usr/bin https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/binary/jq && chmod +x /usr/bin/jq
     judge "install jq"
     fi
 
@@ -263,7 +263,7 @@ function xray_tmp_config_file_check_and_use() {
 
 function conf_nginx_notls() {
     nginx_conf="/etc/nginx/sites-available/default"
-    rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample.conf
+    rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_default_sample.conf
 	judge "nginx config download"
 
 	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
@@ -275,7 +275,7 @@ function conf_nginx_notls() {
 
 function conf_nginx_tls() {
 	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample_tls.conf
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_default_sample_tls.conf
 	judge "nginx config download"
 
 	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
@@ -287,7 +287,7 @@ function conf_nginx_tls() {
 
 function configure_nginx_reverse_proxy_tls() {
 	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_reverse_proxy_tls.conf
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy_tls.conf
 	judge "Nginx config Download"
 
 	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
@@ -299,7 +299,7 @@ function configure_nginx_reverse_proxy_tls() {
 
 function configure_nginx_reverse_proxy_notls() {
 	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_reverse_proxy_notls.conf
+	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/${github_branch}/nginx/nginx_reverse_proxy_notls.conf
 	judge "Nginx config Download"
 
 	systemctl enable --now nginx
@@ -392,7 +392,7 @@ function modify_PASSWORD() {
 }
 
 #function configure_xray() {
-#	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/main/config/xray_xtls-rprx-direct.json
+#	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/xray_xtls-rprx-direct.json
 #	modify_UUID
 #	modify_port
 #}
