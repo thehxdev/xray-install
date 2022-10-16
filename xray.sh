@@ -11,7 +11,8 @@ Purple='\033[0;35m'       # Purple
 Cyan='\033[0;36m'         # Cyan
 White='\033[0;37m'        # White Variables
 
-# Variables github_branch="main"
+# Variables 
+github_branch="main"
 xray_conf_dir="/usr/local/etc/xray"
 website_dir="/var/www/html" xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
