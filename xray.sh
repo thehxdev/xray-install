@@ -261,29 +261,29 @@ function xray_tmp_config_file_check_and_use() {
     touch ${xray_conf_dir}/config_tmp.json
 }
 
-function conf_nginx_notls() {
-    nginx_conf="/etc/nginx/sites-available/default"
-    rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample.conf
-	judge "nginx config download"
-
-	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-	judge "Nginx config modification"
-
-    systemctl enable nginx
-    systemctl restart nginx
-}
-
-function conf_nginx_tls() {
-	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample_tls.conf
-	judge "nginx config download"
-
-	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-	judge "Nginx config modification"
-
-	systemctl enable nginx
-	systemctl restart nginx
-}
+#function conf_nginx_notls() {
+#    nginx_conf="/etc/nginx/sites-available/default"
+#    rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample.conf
+#	judge "nginx config download"
+#
+#	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+#	judge "Nginx config modification"
+#
+#    systemctl enable nginx
+#    systemctl restart nginx
+#}
+#
+#function conf_nginx_tls() {
+#	nginx_conf="/etc/nginx/sites-available/default"
+#	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample_tls.conf
+#	judge "nginx config download"
+#
+#	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
+#	judge "Nginx config modification"
+#
+#	systemctl enable nginx
+#	systemctl restart nginx
+#}
 
 function configure_nginx_reverse_proxy_tls() {
 	nginx_conf="/etc/nginx/sites-available/default"
@@ -291,10 +291,12 @@ function configure_nginx_reverse_proxy_tls() {
 	judge "Nginx config Download"
 
 	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-	judge "Nginx config modification"
+	judge "Nginx config add domain"
 
-	systemctl enable nginx
+	systemctl enable --now nginx
+	judge "nginx start"
 	systemctl restart nginx
+	judge "Nginx restart"
 }
 
 function configure_nginx_reverse_proxy_notls() {
@@ -319,6 +321,88 @@ function nginx_ssl_configuraion() {
 function add_wsPath_to_nginx() {
 	sed -i "s.wsPATH.${WS_PATH}.g" ${nginx_conf}
 	judge "Nginx Websocket Path modification"
+}
+
+function setup_fake_website() {
+	wget https://github.com/arcdetri/sample-blog/archive/master.zip
+	unzip master.zip
+	cp -rf sample-blog-master/html/* /var/www/html/
+}
+
+function send_go_and_gost() {
+	read -rp "Domestic relay IP:" domestic_relay_ip
+	cd /root/
+	wget https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
+	judge "Golang Download"
+	scp ./go1.19.2.linux-amd64.tar.gz root@${domestic_relay_ip}:/root/
+	judge "send Golang to domestic relay"
+
+	wget https://github.com/ginuerzh/gost/releases/download/v2.11.4/gost-linux-amd64-2.11.4.gz
+	judge "Gost Download"
+	scp ./gost-linux-amd64-2.11.4.gz root@${domestic_relay_ip}:/root/
+	judge "send Gost to domestic relay"
+}
+
+function install_gost_and_go_notls() {
+	read -rp "Foreign server IP:" foreign_server_ip
+	rm -rf /usr/local/go 
+	tar -C /usr/local -xzf go1.19.2.linux-amd64.tar.gz
+	judge "install Golang"
+
+    gunzip gost-linux-amd64-2.11.4.gz
+	judge "Gost extract"
+	mv gost-linux-amd64-2.11.4 /usr/local/bin/gost
+	judge "move Gost"
+	chmod +x /usr/local/bin/gost
+	judge "Make Gost executable"
+
+	cat << EOF > /usr/lib/systemd/system/gost.service
+[Unit]
+Description=GO Simple Tunnel
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/gost -L=tcp://:80/$foreign_server_ip:80
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+
+	judge "adding systemd unit for gost"
+}
+
+function install_gost_and_go_tls() {
+	read -rp "Foreign server IP:" foreign_server_ip
+	rm -rf /usr/local/go 
+	tar -C /usr/local -xzf go1.19.2.linux-amd64.tar.gz
+	judge "install Golang"
+
+    gunzip gost-linux-amd64-2.11.4.gz
+	judge "Gost extract"
+	mv gost-linux-amd64-2.11.4 /usr/local/bin/gost
+	judge "move Gost"
+	chmod +x /usr/local/bin/gost
+	judge "Make Gost executable"
+
+	cat << EOF > /usr/lib/systemd/system/gost.service
+[Unit]
+Description=GO Simple Tunnel
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/gost -L=tcp://:443/$foreign_server_ip:443
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+
+	judge "adding systemd unit for gost"
 }
 
 function xray_install() {
@@ -470,29 +554,29 @@ function renew_certbot() {
 #    sed -i "6s/#//" "$nginx_conf"
 #}
 
-function ssl_judge_and_install() {
-    mkdir -p /ssl >/dev/null 2>&1
-    if [[ -f "/ssl/xray.key" || -f "/ssl/xray.crt" ]]; then
-        print_ok "The certificate file in the /ssl directory already exists"
-    fi
-
-    if [[ -f "/ssl/xray.key" || -f "/ssl/xray.crt" ]]; then
-        echo "Certificate file already exists"
-    elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo "Certificate file already exists"
-        "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --ecc
-        judge "Certificate enabled"
-    else
-        mkdir /ssl
-        cp -a $cert_dir/self_signed_cert.pem /ssl/xray.crt
-        cp -a $cert_dir/self_signed_key.pem /ssl/xray.key
-        acme_ssl_install
-        acme
-    fi
-
-    # Xray runs as nobody user by default, certificate authority adaptation 
-    chown -R nobody.$cert_group /ssl/*
-}
+#function ssl_judge_and_install() {
+#    mkdir -p /ssl >/dev/null 2>&1
+#    if [[ -f "/ssl/xray.key" || -f "/ssl/xray.crt" ]]; then
+#        print_ok "The certificate file in the /ssl directory already exists"
+#    fi
+#
+#    if [[ -f "/ssl/xray.key" || -f "/ssl/xray.crt" ]]; then
+#        echo "Certificate file already exists"
+#    elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+#        echo "Certificate file already exists"
+#        "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --ecc
+#        judge "Certificate enabled"
+#    else
+#        mkdir /ssl
+#        cp -a $cert_dir/self_signed_cert.pem /ssl/xray.crt
+#        cp -a $cert_dir/self_signed_key.pem /ssl/xray.key
+#        acme_ssl_install
+#        acme
+#    fi
+#
+#    # Xray runs as nobody user by default, certificate authority adaptation 
+#    chown -R nobody.$cert_group /ssl/*
+#}
 
 #function generate_certificate() {
 #    if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
@@ -518,21 +602,21 @@ function ssl_judge_and_install() {
 #	keyFile="/ssl/xray.key"
 #}
 
-function configure_web() {
-    rm -rf /www/xray_web
-    mkdir -p /www/xray_web
-    print_ok "Do you configure fake web pages? [Y/N]"
-    read -r webpage
-    case $webpage in
-    [yY][eE][sS] | [yY])
-        wget -O web.tar.gz https://raw.githubusercontent.com/wulabing/Xray_onekey/main/basic/web.tar.gz
-        tar xzf web.tar.gz -C /var/www/html/
-        judge "site masquerading"
-        rm -f web.tar.gz
-        ;;
-    *) ;;
-    esac
-}
+#function configure_web() {
+#    rm -rf /www/xray_web
+#    mkdir -p /www/xray_web
+#    print_ok "Do you configure fake web pages? [Y/N]"
+#    read -r webpage
+#    case $webpage in
+#    [yY][eE][sS] | [yY])
+#        wget -O web.tar.gz https://raw.githubusercontent.com/wulabing/Xray_onekey/main/basic/web.tar.gz
+#        tar xzf web.tar.gz -C /var/www/html/
+#        judge "site masquerading"
+#        rm -f web.tar.gz
+#        ;;
+#    *) ;;
+#    esac
+#}
 
 function xray_uninstall() {
     curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
@@ -620,7 +704,7 @@ function vmess_ws() {
 	ip_check
     xray_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-s/config_server.json
-	judge "configuration download"
+	judge "Download configuration"
     modify_port
     modify_UUID
 	modify_ws
@@ -650,13 +734,49 @@ function vmess_ws_nginx() {
 	install_nginx
 	configure_nginx_reverse_proxy_notls
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
-	judge "configuration download"
+	judge "Download configuration"
     modify_UUID
 	modify_ws
 	add_wsPath_to_nginx
 	restart_all
     vmess_ws_nginx_link_gen
 }
+
+# ==== VMESS + WS + Nginx + TLS ====
+#
+function vmess_ws_nginx_tls_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+
+	qrencode -t ansiutf8 -l L vmess://${server_link}
+	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
+}
+
+function vmess_ws_nginx_tls() {
+	check_bash
+    check_root
+    check_os
+    disable_firewalls
+    install_deps
+    basic_optimization
+	ip_check
+	domain_check
+    xray_install
+	install_nginx
+	configure_certbot
+	configure_nginx_reverse_proxy_tls
+	add_wsPath_to_nginx
+	nginx_ssl_configuraion
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
+	judge "Download configuration"
+	modify_UUID
+	modify_ws
+	restart_all
+	send_go_and_gost
+    vmess_ws_nginx_link_gen
+}
+
 
 # ==== VMESS + WS + TLS ====
 
@@ -682,7 +802,7 @@ function vmess_ws_tls() {
 	xray_install
 	configure_certbot
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
-	judge "configuration download"
+	judge "Download configuration"
 	modify_port
 	modify_UUID
 	modify_ws
@@ -720,7 +840,7 @@ function trojan_tcp_tls() {
 	xray_install
 	configure_certbot
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-TCP-TLS-s/config_server.json
-	judge "configuration download"
+	judge "Download configuration"
 	modify_port
 	modify_PASSWORD
 	modify_tls
@@ -759,16 +879,21 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
     echo -e "${Green}1. VMESS + WS${Color_Off}"
 	echo -e "${Green}2. VMESS + WS + TLS${Color_Off}"
 	echo -e "${Green}3. VMESS + WS + Nginx (No TLS)${Color_Off}"
+	echo -e "${Green}3. VMESS + WS + Nginx (TLS)${Color_Off}"
 	echo -e "==========  TROJAN  =========="
 	echo -e "${Green}4. Trojan + TCP + TLS${Color_Off}"
+	echo -e "========== Forwarding =========="
+	echo -e "${Green}5. Send Go and Gost to domestic relay${Color_Off}"
+	echo -e "${Green}6. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}7. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "========== Settings =========="
-	echo -e "${Green}5. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}6. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
-    echo -e "${Red}7. Uninstall Xray${Color_Off}"
-    echo -e "${Yellow}8. Exit${Color_Off}\n"
+	echo -e "${Green}8. Change vps DNS to Cloudflare${Color_Off}"
+	echo -e "${Green}9. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
+    echo -e "${Red}10. Uninstall Xray${Color_Off}"
+    echo -e "${Yellow}11. Exit${Color_Off}\n"
 
     read -rp "Enter an Option: " menu_num
-	until [[ -z "$menu_num" || "$menu_num" =~ ^[1-8]$ ]]; do
+	until [[ -z "$menu_num" || "$menu_num" =~ ^[1-11]$ ]]; do
 		echo "$menu_num: invalid selection."
 		read -rp "Enter an Option: " menu_num
 	done
@@ -787,15 +912,24 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		trojan_tcp_tls
 		;;
 	5)
-		cloudflare_dns
+		send_go_and_gost
 		;;
 	6)
+		install_gost_and_go_tls
+		;;
+	7)
+		install_gost_and_go_notls
+		;;
+	8)
+		cloudflare_dns
+		;;
+	9)
 		bbr_boost
 		;;
-    7)
+    10)
         xray_uninstall
         ;;
-	8)
+	11)
 		exit
 		;;
     esac
