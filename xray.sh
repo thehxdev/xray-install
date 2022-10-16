@@ -309,10 +309,10 @@ function configure_nginx_reverse_proxy_notls() {
 	judge "nginx restart"
 }
 
-function nginx_ssl_configuraion() {
-	sed -i "s|CERT_PATH|/ssl/xray.crt|g" ${nginx_conf}
-	sed -i "s|KEY_PATH|/ssl/xray.key|g" ${nginx_conf}
-}
+#function nginx_ssl_configuraion() {
+#	sed -i "s|CERT_PATH|/ssl/xray.crt|g" ${nginx_conf}
+#	sed -i "s|KEY_PATH|/ssl/xray.key|g" ${nginx_conf}
+#}
 
 function add_wsPath_to_nginx() {
 	sed -i "s.wsPATH.${WS_PATH}.g" ${nginx_conf}
@@ -778,11 +778,13 @@ function vmess_ws_nginx_tls() {
 	ip_check
 	domain_check
 	configure_certbot
+	port_exist_check 80
+	port_exist_check 443
     xray_install
 	install_nginx
 	configure_nginx_reverse_proxy_tls
 	add_wsPath_to_nginx
-	nginx_ssl_configuraion
+	#nginx_ssl_configuraion
 	setup_fake_website
 	restart_nginx
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-TLS-s/server_config.json
