@@ -831,9 +831,6 @@ function vmess_ws_nginx_tls() {
 }
 
 
-# ========== VMESS ========== #
-
-
 # ========== Trojan ========== #
 
 # ==== Torojan + TCP + TLS ====
