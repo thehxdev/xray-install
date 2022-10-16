@@ -367,11 +367,11 @@ function modify_tls() {
 	judge "change tmp file to main file"
 }
 
-function configure_xray() {
-	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/xray_xtls-rprx-direct.json
-	modify_UUID
-	modify_port
-}
+#function configure_xray() {
+#	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/${github_branch}/config/xray_xtls-rprx-direct.json
+#	modify_UUID
+#	modify_port
+#}
 
 function configure_certbot() {
 	mkdir /ssl >/dev/null 2>&1
@@ -380,7 +380,7 @@ function configure_certbot() {
 	certbot certonly --standalone --preferred-challenges http -d $domain
 	judge "certbot ssl certification"
 
-	if [[ -f /etc/letsencrypt/live/$domain ]]; then
+	if [[ -f "/etc/letsencrypt/live/${domain}" ]]; then
 		cp -a /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
 		judge "cert file copy"
 		cp -a /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
@@ -524,7 +524,7 @@ function xray_uninstall() {
     case $uninstall_acme in
     [yY][eE][sS] | [yY])
         "$HOME"/.acme.sh/acme.sh --uninstall
-		apt purge certbot python3-certbot
+		apt purge certbot python3-certbot -y
         rm -rf /root/.acme.sh
         rm -rf /ssl/
 		rm -rf /etc/letsencrypt/
