@@ -527,6 +527,8 @@ function xray_uninstall() {
         rm -rf /root/.acme.sh
         rm -rf /ssl/
 		rm -rf /etc/letsencrypt/
+		rm -rf /var/log/letsencrypt/
+		rm -rf /etc/systemd/system/*certbot*
         ;;
     *) ;;
     esac
