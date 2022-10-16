@@ -503,7 +503,7 @@ function configure_certbot() {
 
 function configure_certbot_reverse_proxy() {
 	mkdir /ssl >/dev/null 2>&1
-	installit certbot python3-certbot
+	installit certbot python3-certbot python3-certbot-nginx
 	judge "certbot python3-certbot Installation"
 	#certbot certonly --preferred-challenges dns -d $domain
 	certbot --nginx -d $domain
