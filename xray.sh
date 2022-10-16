@@ -826,7 +826,7 @@ function vmess_ws_nginx_tls() {
 	modify_UUID
 	modify_ws
 	restart_all
-	send_go_and_gost
+	#send_go_and_gost
     vmess_ws_nginx_link_gen
 }
 
