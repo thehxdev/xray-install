@@ -24,19 +24,19 @@ random_num=$((RANDOM % 12 + 4))
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
 
-OK="[${Green}OK${Color_Off}]"
-ERROR="[${Red}ERROR${Color_Off}]"
+OK="${Green}[OK]"
+ERROR="${Red}[ERROR]"
 
 SLEEP="sleep 0.5"
 
 #print OK
 function print_ok() {
-  echo -e "${OK} $1"
+  echo -e "${OK} $1 ${Color_Off}"
 }
 
 #print ERROR
 function print_error() {
-  echo -e "${ERROR} $1"
+  echo -e "${ERROR} $1 ${Color_Off}"
 }
 
 function installit() {
@@ -758,7 +758,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "==========  VMESS  =========="
     echo -e "${Green}1. VMESS + WS${Color_Off}"
 	echo -e "${Green}2. VMESS + WS + TLS${Color_Off}"
-	echo -e "${Green}3. VMESS + WS + Nginx (No TLS) - ${Red}(Not Tested)${Color_Off}"
+	echo -e "${Green}3. VMESS + WS + Nginx (No TLS)${Color_Off}"
 	echo -e "==========  TROJAN  =========="
 	echo -e "${Green}4. Trojan + TCP + TLS${Color_Off}"
 	echo -e "========== Settings =========="
