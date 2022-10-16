@@ -193,7 +193,7 @@ function cloudflare_dns() {
 function domain_check() {
     read -rp "Please enter your domain name information (example: www.google.com):" domain
     #domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
-	domain_ip=$(dig +short "${domain}")
+	domain_ip=$(dig +short ${domain})
     print_ok "Getting domain IP address information, please be wait..."
     #wgcfv4_status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
     #wgcfv6_status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
@@ -213,10 +213,10 @@ function domain_check() {
     echo -e "Local public network IPv4 address ${local_ipv4}"
     echo -e "Local public network IPv6 address ${local_ipv6}"
     sleep 2
-    if [[ ${domain_ip} == "${local_ipv4}" ]]; then
+    if [[ ${domain_ip} -eq ${local_ipv4} ]]; then
         print_ok "The DNS-resolved IP address of the domain name matches the native IPv4 address"
         sleep 2
-    elif [[ ${domain_ip} == "${local_ipv6}" ]]; then
+    elif [[ ${domain_ip} -eq ${local_ipv6} ]]; then
         print_ok "The DNS-resolved IP address of the domain name matches the native IPv6 address"
         sleep 2
     else
