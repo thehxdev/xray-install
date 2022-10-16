@@ -314,7 +314,7 @@ function nginx_ssl_configuraion() {
 }
 
 function add_wsPath_to_nginx() {
-	sed -i "s/wsPATH/${WS_PATH}/" ${nginx_conf}
+	sed -i "s|wsPATH|$WS_PATH|g" ${nginx_conf}
 	judge "Nginx Websocket Path modification"
 }
 
