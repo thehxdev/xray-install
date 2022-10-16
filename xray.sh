@@ -313,26 +313,6 @@ function nginx_ssl_configuraion() {
 	sed -i "s|KEY_PATH|/ssl/xray.key|g" ${nginx_conf}
 }
 
-function configure_certbot() {
-	mkdir /ssl >/dev/null 2>&1
-	installit certbot python3-certbot
-	judge "certbot python3-certbot Installation"
-	sudo certbot certonly --standalone --preferred-challenges https -d $domain
-	judge "certbot ssl certification"
-
-	if [[ -f /etc/letsencrypt/live/$domain ]]; then
-		cp -a /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
-		judge "cert file copy"
-		cp -a /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
-		judge "key file copy"
-	fi
-}
-
-function renew_certbot() {
-	certbot renew --dry-run
-	judge "SSL renew"
-}
-
 function add_wsPath_to_nginx() {
 	sed -i "s/wsPATH/${WS_PATH}/g" ${nginx_conf}
 }
@@ -393,53 +373,76 @@ function configure_xray() {
 	modify_port
 }
 
-function ssl_install() {
+function configure_certbot() {
+	mkdir /ssl >/dev/null 2>&1
+	installit certbot python3-certbot
+	judge "certbot python3-certbot Installation"
+	certbot certonly --standalone --preferred-challenges https -d $domain
+	judge "certbot ssl certification"
+
+	if [[ -f /etc/letsencrypt/live/$domain ]]; then
+		cp -a /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
+		judge "cert file copy"
+		cp -a /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
+		judge "key file copy"
+	fi
+    chown -R nobody.$cert_group /ssl/*
+	certFile="/ssl/xray.crt"
+	keyFile="/ssl/xray.key"
+}
+
+function renew_certbot() {
+	certbot renew --dry-run
+	judge "SSL renew"
+}
+
+function acme_ssl_install() {
 	curl -L https://get.acme.sh | bash
 	judge "Install the SSL certificate generation script"
 }
 
-function acme() {
-	"$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-
-    sed -i "6s/^/#/" "$nginx_conf"
-    sed -i "6a\\\troot $website_dir;" "$nginx_conf"
-    systemctl restart nginx
-
-    if "$HOME"/.acme.sh/acme.sh --issue --insecure -d "${domain}" --webroot "$website_dir" -k ec-256 --force; then
-		print_ok "SSL certificate generated successfully"
-		sleep 2
-		if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
-			print_ok "SSL certificate configured successfully"
-			sleep 2
-			if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
-				wg-quick up wgcf >/dev/null 2>&1
-				print_ok "wgcf-warp started"
-			fi
-        fi
-    elif "$HOME"/.acme.sh/acme.sh --issue --insecure -d "${domain}" --webroot "$website_dir" -k ec-256 --force --listen-v6; then
-        print_ok "SSL certificate generated successfully"
-        sleep 2
-        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
-			print_ok "SSL certificate configured successfully"
-			sleep 2
-			if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
-				wg-quick up wgcf >/dev/null 2>&1
-				print_ok "wgcf-warp started"
-			fi
-        fi
-    else
-        print_error "SSL certificate generation failed"
-        rm -rf "$HOME/.acme.sh/${domain}_ecc"
-        if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
-			wg-quick up wgcf >/dev/null 2>&1
-			print_ok "wgcf-warp started"
-        fi
-        exit 1
-    fi
-
-    sed -i "7d" "$nginx_conf"
-    sed -i "6s/#//" "$nginx_conf"
-}
+#function acme() {
+#	"$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+#
+#    sed -i "6s/^/#/" "$nginx_conf"
+#    sed -i "6a\\\troot $website_dir;" "$nginx_conf"
+#    systemctl restart nginx
+#
+#    if "$HOME"/.acme.sh/acme.sh --issue --insecure -d "${domain}" --webroot "$website_dir" -k ec-256 --force; then
+#		print_ok "SSL certificate generated successfully"
+#		sleep 2
+#		if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
+#			print_ok "SSL certificate configured successfully"
+#			sleep 2
+#			if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
+#				wg-quick up wgcf >/dev/null 2>&1
+#				print_ok "wgcf-warp started"
+#			fi
+#        fi
+#    elif "$HOME"/.acme.sh/acme.sh --issue --insecure -d "${domain}" --webroot "$website_dir" -k ec-256 --force --listen-v6; then
+#        print_ok "SSL certificate generated successfully"
+#        sleep 2
+#        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /ssl/xray.crt --keypath /ssl/xray.key --reloadcmd "systemctl restart xray" --ecc --force; then
+#			print_ok "SSL certificate configured successfully"
+#			sleep 2
+#			if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
+#				wg-quick up wgcf >/dev/null 2>&1
+#				print_ok "wgcf-warp started"
+#			fi
+#        fi
+#    else
+#        print_error "SSL certificate generation failed"
+#        rm -rf "$HOME/.acme.sh/${domain}_ecc"
+#        if [[ -n $(type -P wgcf) && -n $(type -P wg-quick) ]]; then
+#			wg-quick up wgcf >/dev/null 2>&1
+#			print_ok "wgcf-warp started"
+#        fi
+#        exit 1
+#    fi
+#
+#    sed -i "7d" "$nginx_conf"
+#    sed -i "6s/#//" "$nginx_conf"
+#}
 
 function ssl_judge_and_install() {
     mkdir -p /ssl >/dev/null 2>&1
@@ -457,7 +460,7 @@ function ssl_judge_and_install() {
         mkdir /ssl
         cp -a $cert_dir/self_signed_cert.pem /ssl/xray.crt
         cp -a $cert_dir/self_signed_key.pem /ssl/xray.key
-        ssl_install
+        acme_ssl_install
         acme
     fi
 
@@ -465,29 +468,29 @@ function ssl_judge_and_install() {
     chown -R nobody.$cert_group /ssl/*
 }
 
-function generate_certificate() {
-    if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
-        signedcert=$(xray tls cert -domain="$local_ipv6" -name="$local_ipv6" -org="$local_ipv6" -expire=87600h)
-    else
-        signedcert=$(xray tls cert -domain="$local_ipv4" -name="$local_ipv4" -org="$local_ipv4" -expire=87600h)
-    fi
-    echo $signedcert | jq '.certificate[]' | sed 's/\"//g' | tee $cert_dir/self_signed_cert.pem
-    echo $signedcert | jq '.key[]' | sed 's/\"//g' >$cert_dir/self_signed_key.pem
-    openssl x509 -in $cert_dir/self_signed_cert.pem -noout || (print_error "Failed to generate self-signed certificate" && exit 1)
-    print_ok "Self-signed certificate generated successfully"
-	chown nobody.$cert_group $cert_dir/self_signed_cert.pem
-    chown nobody.$cert_group $cert_dir/self_signed_key.pem
-    if [[ ! -f "/ssl" ]]; then
-        mkdir /ssl
-        cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
-        cp $cert_dir/self_signed_key.pem /ssl/xray.key
-    else 
-        cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
-        cp $cert_dir/self_signed_key.pem /ssl/xray.key
-    fi
-	certFile="/ssl/xray.crt"
-	keyFile="/ssl/xray.key"
-}
+#function generate_certificate() {
+#    if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+#        signedcert=$(xray tls cert -domain="$local_ipv6" -name="$local_ipv6" -org="$local_ipv6" -expire=87600h)
+#    else
+#        signedcert=$(xray tls cert -domain="$local_ipv4" -name="$local_ipv4" -org="$local_ipv4" -expire=87600h)
+#    fi
+#    echo $signedcert | jq '.certificate[]' | sed 's/\"//g' | tee $cert_dir/self_signed_cert.pem
+#    echo $signedcert | jq '.key[]' | sed 's/\"//g' >$cert_dir/self_signed_key.pem
+#    openssl x509 -in $cert_dir/self_signed_cert.pem -noout || (print_error "Failed to generate self-signed certificate" && exit 1)
+#    print_ok "Self-signed certificate generated successfully"
+#	chown nobody.$cert_group $cert_dir/self_signed_cert.pem
+#    chown nobody.$cert_group $cert_dir/self_signed_key.pem
+#    if [[ ! -f "/ssl" ]]; then
+#        mkdir /ssl
+#        cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
+#        cp $cert_dir/self_signed_key.pem /ssl/xray.key
+#    else 
+#        cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
+#        cp $cert_dir/self_signed_key.pem /ssl/xray.key
+#    fi
+#	certFile="/ssl/xray.crt"
+#	keyFile="/ssl/xray.key"
+#}
 
 function configure_web() {
     rm -rf /www/xray_web
@@ -597,8 +600,8 @@ function vmess_ws_tls() {
 	ip_check
 	domain_check
     xray_install
-	generate_certificate
-	ssl_judge_and_install
+	configure_certbot
+	#ssl_judge_and_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
     modify_port
     modify_UUID
