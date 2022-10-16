@@ -357,11 +357,11 @@ function modify_ws() {
 }
 
 function modify_tls() {
-	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates","certificateFile"];"'${certFile}'")' >${xray_conf_dir}/config_tmp.json
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates",0,"certificateFile"];"'${certFile}'")' >${xray_conf_dir}/config_tmp.json
 	judge "modify Xray TLS Cert File"
 	xray_tmp_config_file_check_and_use
 	judge "change tmp file to main file"
-	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates","keyFile"];"'${keyFile}'")' >${xray_conf_dir}/config_tmp.json
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates",0,"keyFile"];"'${keyFile}'")' >${xray_conf_dir}/config_tmp.json
 	judge "modify Xray TLS Key File"
 	xray_tmp_config_file_check_and_use
 	judge "change tmp file to main file"
