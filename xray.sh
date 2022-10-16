@@ -121,7 +121,6 @@ function disable_firewalls() {
 
 function install_nginx() {
 	installit nginx
-	judge "install Nginx"
 }
 
 function install_deps() {
@@ -497,22 +496,22 @@ function configure_certbot() {
 	keyFile="/ssl/xray.key"
 }
 
-function configure_certbot_reverse_proxy() {
-	mkdir /ssl >/dev/null 2>&1
-	installit certbot python3-certbot-nginx
-	judge "certbot python3-certbot-nginx Installation"
-	certbot --nginx --register-unsafely-without-email -d $domain
-	judge "certbot ssl certification"
-
-	cp /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
-	judge "copy cert file"
-	cp /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
-	judge "copy key file"
-
-    chown -R nobody.$cert_group /ssl/*
-	certFile="/ssl/xray.crt"
-	keyFile="/ssl/xray.key"
-}
+#function configure_certbot_reverse_proxy() {
+#	mkdir /ssl >/dev/null 2>&1
+#	installit certbot python3-certbot-nginx
+#	judge "certbot python3-certbot-nginx Installation"
+#	certbot --nginx --register-unsafely-without-email -d $domain
+#	judge "certbot ssl certification"
+#
+#	cp /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
+#	judge "copy cert file"
+#	cp /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
+#	judge "copy key file"
+#
+#	chown -R nobody.$cert_group /ssl/*
+#	certFile="/ssl/xray.crt"
+#	keyFile="/ssl/xray.key"
+#}
 
 function renew_certbot() {
 	certbot renew --dry-run
@@ -777,8 +776,8 @@ function vmess_ws_nginx_tls() {
 	ip_check
 	domain_check
     xray_install
+	configure_certbot
 	install_nginx
-	configure_certbot_reverse_proxy
 	configure_nginx_reverse_proxy_tls
 	add_wsPath_to_nginx
 	nginx_ssl_configuraion
