@@ -835,7 +835,7 @@ function vmess_ws_nginx_tls() {
 
 function trojan_tcp_tls_link_gen() {
 	read -rp "Choose config name: " config_name
-	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	#UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
 	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$domain&security=tls&type=tcp#$config_name")
 
@@ -861,6 +861,39 @@ function trojan_tcp_tls() {
 	modify_tls
 	restart_xray
 	trojan_tcp_tls_link_gen
+}
+
+# ==== Torojan + WS + TLS ====
+
+function trojan_ws_tls_link_gen() {
+	read -rp "Choose config name: " config_name
+	#UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:443?sni=$domain&security=tls&type=ws&path=$WS_PATH#$config_name")
+
+	qrencode -t ansiutf8 -l L trojan://${server_link}
+	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
+}
+
+function trojan_ws_tls() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	domain_check
+	xray_install
+	configure_certbot
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-Websocket-TLS-s/config_server.json
+	judge "Download configuration"
+	modify_port
+	modify_ws
+	modify_PASSWORD
+	modify_tls
+	restart_xray
+	trojan_ws_tls_link_gen
 }
 
 # ===================================== #
