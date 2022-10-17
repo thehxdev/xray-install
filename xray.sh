@@ -704,10 +704,43 @@ function bbr_boost() {
 
 # ========== VLESS ========== #
 
+# VLESS + WS + TLS
+function vless_ws_tls_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "vless://$UUID@$SERVER_IP:$PORT?sni=$domain&security=tls&type=ws&path=$WS_PATH#$config_name")
+
+	qrencode -t ansiutf8 -l L vless://${server_link}
+	echo -ne "${Green}VMESS Link: ${Yellow}vless://$server_link${Color_Off}\n"
+}
+
+function vless_ws_tls() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	domain_check
+	xray_install
+	configure_certbot
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-Websocket-TLS-s/server_config.json
+	judge "Download configuration"
+	modify_port
+	modify_UUID
+	modify_ws
+	modify_tls
+	restart_xray
+	vless_ws_tls_link_gen
+}
+
+
 
 # ========== VMESS ========== #
 
-# ==== VMESS + WS ====
+# VMESS + WS 
 function vmess_ws_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
@@ -760,7 +793,7 @@ function vmess_ws_tls() {
 	domain_check
 	xray_install
 	configure_certbot
-	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/server_config.json
 	judge "Download configuration"
 	modify_port
 	modify_UUID
@@ -788,6 +821,7 @@ function vmess_ws_nginx() {
     install_deps
     basic_optimization
 	ip_check
+	port_exist_check 80
     xray_install
 	install_nginx
 	configure_nginx_reverse_proxy_notls
