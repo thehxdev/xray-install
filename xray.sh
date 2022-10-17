@@ -7,7 +7,7 @@ Red='\033[0;31m'          # Red
 Green='\033[0;32m'        # Green
 Yellow='\033[0;33m'       # Yellow
 Blue='\033[0;34m'         # Blue
-Purple='\033[0;35m'       # Purple
+Purple='\033[0;35m'       # Purple 
 Cyan='\033[0;36m'         # Cyan
 White='\033[0;37m'        # White Variables
 
@@ -701,6 +701,9 @@ function restart_xray() {
 function bbr_boost() {
 	wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
+
+# ========== VLESS ========== #
+
 
 # ========== VMESS ========== #
 
