@@ -672,18 +672,19 @@ function xray_uninstall() {
 		rm -rf /etc/letsencrypt/
 		rm -rf /var/log/letsencrypt/
 		rm -rf /etc/systemd/system/*certbot*
+        rm -rf /ssl/
         ;;
     *) ;;
     esac
 
-	print_ok "Remove SSL certificates? [y/n]?"
-	read -r remove_ssl_certs
-	case $remove_ssl_certs in 
-		[yY][eE][sS] | [yY])
-        rm -rf /ssl/
-		;;
-	*) ;;
-	esac
+	#print_ok "Remove SSL certificates? [y/n]?"
+	#read -r remove_ssl_certs
+	#case $remove_ssl_certs in 
+	#	[yY][eE][sS] | [yY])
+    #    rm -rf /ssl/
+	#	;;
+	#*) ;;
+	#esac
 
     print_ok "Uninstall complete"
     exit 0
