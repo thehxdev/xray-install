@@ -966,63 +966,68 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
         echo -e "${Color_Off}Version = ${Blue}${os_version}\n"
     fi
 
+	echo -e "==========  VLESS  =========="
+	echo -e "${Green}1. VLESS + WS + TLS${Color_Off}"
 	echo -e "==========  VMESS  =========="
-    echo -e "${Green}1. VMESS + WS${Color_Off}"
-	echo -e "${Green}2. VMESS + WS + TLS${Color_Off}"
-	echo -e "${Green}3. VMESS + WS + Nginx (No TLS)${Color_Off}"
-	echo -e "${Green}4. VMESS + WS + Nginx (TLS)${Color_Off}"
+    echo -e "${Green}2. VMESS + WS${Color_Off}"
+	echo -e "${Green}3. VMESS + WS + TLS${Color_Off}"
+	echo -e "${Green}4. VMESS + WS + Nginx (No TLS)${Color_Off}"
+	echo -e "${Green}5. VMESS + WS + Nginx (TLS)${Color_Off}"
 	echo -e "==========  TROJAN  =========="
-	echo -e "${Green}5. Trojan + TCP + TLS${Color_Off}"
-	echo -e "${Green}6. Trojan + WS + TLS${Color_Off}"
+	echo -e "${Green}6. Trojan + TCP + TLS${Color_Off}"
+	echo -e "${Green}7. Trojan + WS + TLS${Color_Off}"
 	echo -e "========== Forwarding =========="
-	echo -e "${Green}7. Send Golang and Gost to domestic relay${Color_Off}"
-	echo -e "${Green}8. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-	echo -e "${Green}9. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}8. Send Golang and Gost to domestic relay${Color_Off}"
+	echo -e "${Green}9. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}10. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "========== Settings =========="
-	echo -e "${Green}10. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}11. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
-    echo -e "${Red}12. Uninstall Xray${Color_Off}"
-    echo -e "${Yellow}13. Exit${Color_Off}\n"
+	echo -e "${Green}11. Change vps DNS to Cloudflare${Color_Off}"
+	echo -e "${Green}12. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
+    echo -e "${Red}13. Uninstall Xray${Color_Off}"
+    echo -e "${Yellow}14. Exit${Color_Off}\n"
 
     read -rp "Enter an Option: " menu_num
     case $menu_num in
     1)
+		vless_ws_tls
+		;;
+	2)
         vmess_ws
         ;;
-	2)
+	3)
 		vmess_ws_tls
 		;;
-	3)
+	4)
 		vmess_ws_nginx
 		;;
-	4)
+	5)
 		vmess_ws_nginx_tls
 		;;
-	5)
+	6)
 		trojan_tcp_tls
 		;;
-	6)
+	7)
 		trojan_ws_tls
 		;;
-	7)
+	8)
 		send_go_and_gost
 		;;
-	8)
+	9)
 		install_gost_and_go_tls
 		;;
-	9)
+	10)
 		install_gost_and_go_notls
 		;;
-	10)
+	11)
 		cloudflare_dns
 		;;
-	11)
+	12)
 		bbr_boost
 		;;
-    12)
+    13)
         xray_uninstall
         ;;
-	13)
+	14)
 		exit
 		;;
 	*)
