@@ -930,15 +930,16 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "${Green}4. VMESS + WS + Nginx (TLS)${Color_Off}"
 	echo -e "==========  TROJAN  =========="
 	echo -e "${Green}5. Trojan + TCP + TLS${Color_Off}"
+	echo -e "${Green}6. Trojan + WS + TLS${Color_Off}"
 	echo -e "========== Forwarding =========="
-	echo -e "${Green}6. Send Golang and Gost to domestic relay${Color_Off}"
-	echo -e "${Green}7. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-	echo -e "${Green}8. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}7. Send Golang and Gost to domestic relay${Color_Off}"
+	echo -e "${Green}8. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}9. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "========== Settings =========="
-	echo -e "${Green}9. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}10. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
-    echo -e "${Red}11. Uninstall Xray${Color_Off}"
-    echo -e "${Yellow}12. Exit${Color_Off}\n"
+	echo -e "${Green}10. Change vps DNS to Cloudflare${Color_Off}"
+	echo -e "${Green}11. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
+    echo -e "${Red}12. Uninstall Xray${Color_Off}"
+    echo -e "${Yellow}13. Exit${Color_Off}\n"
 
     read -rp "Enter an Option: " menu_num
     case $menu_num in
@@ -958,24 +959,27 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		trojan_tcp_tls
 		;;
 	6)
-		send_go_and_gost
+		trojan_ws_tls
 		;;
 	7)
-		install_gost_and_go_tls
+		send_go_and_gost
 		;;
 	8)
-		install_gost_and_go_notls
+		install_gost_and_go_tls
 		;;
 	9)
-		cloudflare_dns
+		install_gost_and_go_notls
 		;;
 	10)
+		cloudflare_dns
+		;;
+	11)
 		bbr_boost
 		;;
-    11)
+    12)
         xray_uninstall
         ;;
-	12)
+	13)
 		exit
 		;;
 	*)
