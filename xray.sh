@@ -963,7 +963,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 '
 
 	echo -e "==========  VLESS  =========="
-	echo -e "${Green}1. VLESS + WS + TLS ${Red}(NOT Tested)${Color_Off}"
+	echo -e "${Green}1. VLESS + WS + TLS${Color_Off}"
 	echo -e "==========  VMESS  =========="
     echo -e "${Green}2. VMESS + WS${Color_Off}"
 	echo -e "${Green}3. VMESS + WS + TLS${Color_Off}"
