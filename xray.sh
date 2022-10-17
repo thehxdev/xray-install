@@ -713,7 +713,7 @@ function vless_ws_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "vless://$UUID@$SERVER_IP:$PORT?sni=$domain&security=tls&type=ws&path=$WS_PATH#$config_name")
+	server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$domain&security=tls&type=ws&path=$WS_PATH#$config_name")
 
 	qrencode -t ansiutf8 -l L vless://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vless://$server_link${Color_Off}\n"
