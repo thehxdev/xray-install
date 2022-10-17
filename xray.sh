@@ -876,7 +876,6 @@ function vmess_ws_nginx_tls() {
     vmess_ws_nginx_tls_link_gen
 }
 
-
 # ========== Trojan ========== #
 
 # ==== Torojan + TCP + TLS ====
