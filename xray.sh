@@ -368,6 +368,9 @@ WantedBy=multi-user.target
 EOF
 
 	judge "adding systemd unit for gost"
+
+	systemctl enable --now gost.service
+	judge "gost service start"
 }
 
 function install_gost_and_go_tls() {
@@ -399,6 +402,9 @@ WantedBy=multi-user.target
 EOF
 
 	judge "adding systemd unit for gost"
+
+	systemctl enable --now gost.service
+	judge "gost service start"
 }
 
 function xray_install() {
