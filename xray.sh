@@ -532,7 +532,7 @@ function self_signed_ssl() {
 }
 
 function get_ssl_cert() {
-	echo -e "${Green}1. Certbot (Needs Domain and DNS A/AAAA record)${Color_Off}"
+	echo -e "${Yellow}1. Certbot (Needs Domain and DNS A/AAAA record)${Color_Off}"
 	echo -e "${Yellow}2. Self-Signed SSL certification (No Domain)${Color_Off}"
 	read -rp "Choose SSL certification method: " ssl_method_num
     case $ssl_method_num in
@@ -1005,8 +1005,8 @@ function trojan_ws_tls() {
 	ip_check
 	domain_check
 	xray_install
-	#configure_certbot
-	get_ssl_cert
+	configure_certbot
+	#get_ssl_cert
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-Websocket-TLS-s/config_server.json
 	judge "Download configuration"
 	modify_port
