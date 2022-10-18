@@ -740,6 +740,37 @@ function vless_ws_tls() {
 	vless_ws_tls_link_gen
 }
 
+# VLESS + TCP + TLS
+
+function vless_tcp_tls_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$domain&security=tls&type=tcp#$config_name")
+
+	qrencode -t ansiutf8 -l L vless://${server_link}
+	echo -ne "${Green}VMESS Link: ${Yellow}vless://$server_link${Color_Off}\n"
+}
+
+function vless_tcp_tls() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	domain_check
+	xray_install
+	configure_certbot
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-TCP-TLS-Minimal-s/config_server.json
+	judge "Download configuration"
+	modify_port
+	modify_UUID
+	modify_tls
+	restart_xray
+	vless_tcp_tls_link_gen
+}
 
 
 # ========== VMESS ========== #
