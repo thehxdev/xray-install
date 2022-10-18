@@ -508,7 +508,7 @@ function configure_certbot() {
 
 
 function self_signed_ssl() {
-	xray_install
+	#xray_install
 	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
 		signedcert=$(xray tls cert -domain="$SERVER_IP" -name="$SERVER_IP" -org="$SERVER_IP" -expire=87600h)
 	else
