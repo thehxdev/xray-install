@@ -708,7 +708,7 @@ function xray_uninstall() {
 
 	print_ok "Uninstall certbot? [y/n]?"
     read -r uninstall_certbot
-    case $uninstall_acme in
+    case $uninstall_certbot in
     [yY][eE][sS] | [yY])
 		apt purge certbot python3-certbot -y
 		rm -rf /etc/letsencrypt/
