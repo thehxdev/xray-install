@@ -451,12 +451,12 @@ function modify_UUID_ws() {
     judge "change tmp file to main file"
 }
 
-function modify_fallback_ws() {
-	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray fallback_ws"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-}
+#function modify_fallback_ws() {
+#	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
+#    judge "modify Xray fallback_ws"
+#    xray_tmp_config_file_check_and_use
+#    judge "change tmp file to main file"
+#}
 
 function modify_ws() {
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
@@ -504,6 +504,48 @@ function configure_certbot() {
     chown -R nobody.$cert_group /ssl/*
 	certFile="/ssl/xray.crt"
 	keyFile="/ssl/xray.key"
+}
+
+
+function self_signed_ssl() {
+	xray_install
+	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+		signedcert=$(xray tls cert -domain="$SERVER_IP" -name="$SERVER_IP" -org="$SERVER_IP" -expire=87600h)
+	else
+		signedcert=$(xray tls cert -domain="$SERVER_IP" -name="$SERVER_IP" -org="$SERVER_IP" -expire=87600h)
+	fi
+	echo $signedcert | jq '.certificate[]' | sed 's/\"//g' | tee $cert_dir/self_signed_cert.pem
+	echo $signedcert | jq '.key[]' | sed 's/\"//g' >$cert_dir/self_signed_key.pem
+	openssl x509 -in $cert_dir/self_signed_cert.pem -noout
+	judge "openssl"
+	print_ok "Self-signed certificate generated successfully"
+
+	mkdir /ssl/ >/dev/null 2>&1
+	cp $cert_dir/self_signed_cert.pem /ssl/xray.crt
+	judge "copy cert file"
+	cp $cert_dir/self_signed_key.pem /ssl/xray.key
+	judge "copy key file"
+
+    chown -R nobody.$cert_group /ssl/*
+	certFile="/ssl/xray.crt"
+	keyFile="/ssl/xray.key"
+}
+
+function get_ssl_cert() {
+	echo -e "${Green}1. Certbot (Needs Domain and DNS A/AAAA record)${Color_Off}"
+	echo -e "${Yellow}2. Self-Signed SSL certification (No Domain)${Color_Off}"
+	read -rp "Choose SSL certification method: " ssl_method_num
+    case $ssl_method_num in
+    1)
+		configure_certbot
+		;;
+	2)
+		self_signed_ssl
+		;;
+	*)
+		print_error "Invalid Option..."
+		exit 1
+    esac
 }
 
 #function configure_certbot_reverse_proxy() {
@@ -963,7 +1005,8 @@ function trojan_ws_tls() {
 	ip_check
 	domain_check
 	xray_install
-	configure_certbot
+	#configure_certbot
+	get_ssl_cert
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-Websocket-TLS-s/config_server.json
 	judge "Download configuration"
 	modify_port
