@@ -858,7 +858,6 @@ function vmess_ws_tls_link_gen() {
 	qrencode -t ansiutf8 -l L vmess://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
 }
-
 function vmess_ws_tls() {
 	check_bash
 	check_root
@@ -947,6 +946,55 @@ function vmess_ws_nginx_tls() {
 	modify_ws
 	restart_all
     vmess_ws_nginx_tls_link_gen
+}
+
+# VMESS + TCP
+function vmess_tcp_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+
+	qrencode -t ansiutf8 -l L vmess://${server_link}
+	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
+}
+
+function vmess_tcp() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	xray_install
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-TCP-s/config_server.json
+	judge "Download configuration"
+	modify_port
+	modify_UUID
+	restart_xray
+	vmess_tcp_link_gen
+}
+
+
+# VMESS + TCP + TLS
+
+function vmess_tcp_tls() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	xray_install
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-TCP-TLS-s/config_server.json
+	judge "Download configuration"
+	modify_port
+	modify_UUID
+	modify_tls
+	restart_xray
+	#Link gen
 }
 
 # ========== Trojan ========== #
@@ -1043,18 +1091,19 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "${Green}4. VMESS + WS + TLS${Color_Off}"
 	echo -e "${Green}5. VMESS + WS + Nginx (No TLS)${Color_Off}"
 	echo -e "${Green}6. VMESS + WS + Nginx (TLS)${Color_Off}"
+	echo -e "${Green}7. VMESS + TCP ${Red}(NOT Tested)${Color_Off}"
 	echo -e "==========  TROJAN  =========="
-	echo -e "${Green}7. Trojan + TCP + TLS${Color_Off}"
-	echo -e "${Green}8. Trojan + WS + TLS${Color_Off}"
+	echo -e "${Green}8. Trojan + TCP + TLS${Color_Off}"
+	echo -e "${Green}9. Trojan + WS + TLS${Color_Off}"
 	echo -e "========== Forwarding =========="
-	echo -e "${Green}9. Send Golang and Gost to domestic relay${Color_Off}"
-	echo -e "${Green}10. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-	echo -e "${Green}11. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}10. Send Golang and Gost to domestic relay${Color_Off}"
+	echo -e "${Green}11. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}12. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "========== Settings =========="
-	echo -e "${Green}12. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}13. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
-    echo -e "${Red}14. Uninstall Xray${Color_Off}"
-    echo -e "${Yellow}15. Exit${Color_Off}\n"
+	echo -e "${Green}13. Change vps DNS to Cloudflare${Color_Off}"
+	echo -e "${Green}14. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
+    echo -e "${Red}15. Uninstall Xray${Color_Off}"
+    echo -e "${Yellow}16. Exit${Color_Off}\n"
 
     read -rp "Enter an Option: " menu_num
     case $menu_num in
@@ -1077,30 +1126,33 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		vmess_ws_nginx_tls
 		;;
 	7)
-		trojan_tcp_tls
+		vmess_tcp
 		;;
 	8)
-		trojan_ws_tls
+		trojan_tcp_tls
 		;;
 	9)
-		send_go_and_gost
+		trojan_ws_tls
 		;;
 	10)
-		install_gost_and_go_tls
+		send_go_and_gost
 		;;
 	11)
-		install_gost_and_go_notls
+		install_gost_and_go_tls
 		;;
 	12)
-		cloudflare_dns
+		install_gost_and_go_notls
 		;;
 	13)
+		cloudflare_dns
+		;;
+	14)
 		bbr_boost
 		;;
-    14)
+    15)
         xray_uninstall
         ;;
-	15)
+	16)
 		exit
 		;;
 	*)
