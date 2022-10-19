@@ -953,7 +953,7 @@ function vmess_tcp_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -978,6 +978,15 @@ function vmess_tcp() {
 
 
 # VMESS + TCP + TLS
+function vmess_tcp_tls_link_gen() {
+	read -rp "Choose config name: " config_name
+	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+
+	qrencode -t ansiutf8 -l L vmess://${server_link}
+	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
+}
 
 function vmess_tcp_tls() {
 	check_bash
@@ -987,6 +996,8 @@ function vmess_tcp_tls() {
 	install_deps
 	basic_optimization
 	ip_check
+	domain_check
+	configure_certbot
 	xray_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-TCP-TLS-s/config_server.json
 	judge "Download configuration"
@@ -994,7 +1005,7 @@ function vmess_tcp_tls() {
 	modify_UUID
 	modify_tls
 	restart_xray
-	#Link gen
+	vmess_tcp_tls_link_gen
 }
 
 # ========== Trojan ========== #
