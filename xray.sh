@@ -1126,8 +1126,8 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		vless_tcp_tls
 		;;
 	3)
-        vmess_ws
-        ;;
+		vmess_ws
+		;;
 	4)
 		vmess_ws_tls
 		;;
@@ -1164,9 +1164,9 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	15)
 		bbr_boost
 		;;
-    16)
-        xray_uninstall
-        ;;
+	16)
+		xray_uninstall
+		;;
 	17)
 		exit
 		;;
