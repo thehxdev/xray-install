@@ -1103,18 +1103,19 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "${Green}5. VMESS + WS + Nginx (No TLS)${Color_Off}"
 	echo -e "${Green}6. VMESS + WS + Nginx (TLS)${Color_Off}"
 	echo -e "${Green}7. VMESS + TCP ${Red}(NOT Tested)${Color_Off}"
+	echo -e "${Green}8. VMESS + TCP + TLS ${Red}(NOT Tested)${Color_Off}"
 	echo -e "==========  TROJAN  =========="
-	echo -e "${Green}8. Trojan + TCP + TLS${Color_Off}"
-	echo -e "${Green}9. Trojan + WS + TLS${Color_Off}"
+	echo -e "${Green}9. Trojan + TCP + TLS${Color_Off}"
+	echo -e "${Green}10. Trojan + WS + TLS${Color_Off}"
 	echo -e "========== Forwarding =========="
-	echo -e "${Green}10. Send Golang and Gost to domestic relay${Color_Off}"
-	echo -e "${Green}11. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-	echo -e "${Green}12. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}11. Send Golang and Gost to domestic relay${Color_Off}"
+	echo -e "${Green}12. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}13. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "========== Settings =========="
-	echo -e "${Green}13. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}14. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
-    echo -e "${Red}15. Uninstall Xray${Color_Off}"
-    echo -e "${Yellow}16. Exit${Color_Off}\n"
+	echo -e "${Green}14. Change vps DNS to Cloudflare${Color_Off}"
+	echo -e "${Green}15. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
+    echo -e "${Red}16. Uninstall Xray${Color_Off}"
+    echo -e "${Yellow}17. Exit${Color_Off}\n"
 
     read -rp "Enter an Option: " menu_num
     case $menu_num in
@@ -1140,30 +1141,32 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		vmess_tcp
 		;;
 	8)
+		vmess_tcp_tls
+	9)
 		trojan_tcp_tls
 		;;
-	9)
+	10)
 		trojan_ws_tls
 		;;
-	10)
+	11)
 		send_go_and_gost
 		;;
-	11)
+	12)
 		install_gost_and_go_tls
 		;;
-	12)
+	13)
 		install_gost_and_go_notls
 		;;
-	13)
+	14)
 		cloudflare_dns
 		;;
-	14)
+	15)
 		bbr_boost
 		;;
-    15)
+    16)
         xray_uninstall
         ;;
-	16)
+	17)
 		exit
 		;;
 	*)
