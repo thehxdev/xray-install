@@ -32,16 +32,16 @@ SLEEP="sleep 1"
 
 #print OK
 function print_ok() {
-  echo -e "${OK} $1 ${Color_Off}"
+	echo -e "${OK} $1 ${Color_Off}"
 }
 
 #print ERROR
 function print_error() {
-  echo -e "${ERROR} $1 ${Color_Off}"
+	echo -e "${ERROR} $1 ${Color_Off}"
 }
 
 function installit() {
-    apt install -y $*
+	apt install -y $*
 }
 
 function judge() {
