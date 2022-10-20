@@ -14,6 +14,8 @@ bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 1. [VMESS + WS + TLS](https://github.com/thehxdev/xray-examples/tree/main/VMess-Websocket-TLS-s)
 1. [VMESS + WS + Nginx](https://github.com/thehxdev/xray-examples/tree/main/VMess-Websocket-Nginx-s)
 1. [VMESS + WS + Nginx + TLS](https://github.com/thehxdev/xray-examples/tree/main/VMess-Websocket-Nginx-TLS-s)
+1. [VMESS + TCP](https://github.com/thehxdev/xray-examples/tree/main/VMess-TCP-s)
+1. [VMESS + TCP + TLS](https://github.com/thehxdev/xray-examples/tree/main/VMess-TCP-TLS-s)
 1. [Trojan + TCP + TLS](https://github.com/thehxdev/xray-examples/tree/main/Trojan-TCP-TLS-s)
 1. [Trojan + WS + TLS](https://github.com/thehxdev/xray-examples/tree/main/Trojan-Websocket-TLS-s)
 

@@ -1098,12 +1098,12 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "${Green}1. VLESS + WS + TLS${Color_Off}"
 	echo -e "${Green}2. VLESS + TCP + TLS${Color_Off}"
 	echo -e "==========  VMESS  =========="
-    echo -e "${Green}3. VMESS + WS${Color_Off}"
+	echo -e "${Green}3. VMESS + WS${Color_Off}"
 	echo -e "${Green}4. VMESS + WS + TLS${Color_Off}"
 	echo -e "${Green}5. VMESS + WS + Nginx (No TLS)${Color_Off}"
 	echo -e "${Green}6. VMESS + WS + Nginx (TLS)${Color_Off}"
-	echo -e "${Green}7. VMESS + TCP ${Red}(NOT Tested)${Color_Off}"
-	echo -e "${Green}8. VMESS + TCP + TLS ${Red}(NOT Tested)${Color_Off}"
+	echo -e "${Green}7. VMESS + TCP${Color_Off}"
+	echo -e "${Green}8. VMESS + TCP + TLS${Color_Off}"
 	echo -e "==========  TROJAN  =========="
 	echo -e "${Green}9. Trojan + TCP + TLS${Color_Off}"
 	echo -e "${Green}10. Trojan + WS + TLS${Color_Off}"
@@ -1114,11 +1114,11 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "========== Settings =========="
 	echo -e "${Green}14. Change vps DNS to Cloudflare${Color_Off}"
 	echo -e "${Green}15. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
-    echo -e "${Red}16. Uninstall Xray${Color_Off}"
-    echo -e "${Yellow}17. Exit${Color_Off}\n"
+	echo -e "${Red}16. Uninstall Xray${Color_Off}"
+	echo -e "${Yellow}17. Exit${Color_Off}\n"
 
-    read -rp "Enter an Option: " menu_num
-    case $menu_num in
+	read -rp "Enter an Option: " menu_num
+	case $menu_num in
     1)
 		vless_ws_tls
 		;;
