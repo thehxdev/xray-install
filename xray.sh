@@ -482,34 +482,34 @@ function modify_PASSWORD() {
 
 # ==================== Modify Ultimate Config ==================== #
 function modify_PASSWORD_trojan() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray Trojan Password"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray Trojan Password"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function modify_UUID_VLESS_XTLS() {
-    [ -z "$UUID1" ] && UUID1=$(cat /proc/sys/kernel/random/uuid)
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID1}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify VLESS XTLS UUID"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
+	[ -z "$UUID1" ] && UUID1=$(cat /proc/sys/kernel/random/uuid)
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID1}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify VLESS XTLS UUID"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function modify_UUID_VLESS_WS() {
-    [ -z "$UUID2" ] && UUID2=$(cat /proc/sys/kernel/random/uuid)
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",2,"settings","clients",0,"id"];"'${UUID2}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray VLESS WS UUID"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
+	[ -z "$UUID2" ] && UUID2=$(cat /proc/sys/kernel/random/uuid)
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",2,"settings","clients",0,"id"];"'${UUID2}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray VLESS WS UUID"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function modify_UUID_VMESS_WS() {
-    [ -z "$UUID3" ] && UUID3=$(cat /proc/sys/kernel/random/uuid)
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",3,"settings","clients",0,"id"];"'${UUID3}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray VLESS WS UUID"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
+	[ -z "$UUID3" ] && UUID3=$(cat /proc/sys/kernel/random/uuid)
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",3,"settings","clients",0,"id"];"'${UUID3}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray VLESS WS UUID"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function modify_ws_VLESS_WS() {
