@@ -46,79 +46,79 @@ function installit() {
 }
 
 function judge() {
-    if [[ 0 -eq $? ]]; then
-        print_ok "$1 Finished"
-        $SLEEP
-    else
-        print_error "$1 Failde"
-        exit 1
-    fi
+	if [[ 0 -eq $? ]]; then
+		print_ok "$1 Finished"
+		$SLEEP
+	else
+		print_error "$1 Failde"
+		exit 1
+	fi
 }
 
 # Check the shell
 function check_bash() {
-    is_BASH=$(readlink /proc/$$/exe | grep -q "bash")
-    if [[ $is_BASH -ne "bash" ]]; then
-        print_error "This installer needs to be run with bash, not sh."
-        exit
-    fi
+	is_BASH=$(readlink /proc/$$/exe | grep -q "bash")
+	if [[ $is_BASH -ne "bash" ]]; then
+		print_error "This installer needs to be run with bash, not sh."
+		exit
+	fi
 }
 
 # Check root
 function check_root() {
-    if [[ "$EUID" -ne 0 ]]; then
-        print_error "This installer needs to be run with superuser privileges. Login as root user and run the script again!\n"
-        exit
-    else 
-        print_ok "Root user checked!" ; $SLEEP
-    fi
+	if [[ "$EUID" -ne 0 ]]; then
+		print_error "This installer needs to be run with superuser privileges. Login as root user and run the script again!\n"
+		exit
+	else 
+		print_ok "Root user checked!" ; $SLEEP
+	fi
 }
 
 # Check OS
 function check_os() {
-    if grep -qs "ubuntu" /etc/os-release; then
-        os="ubuntu"
-        os_version=$(grep 'VERSION_ID' /etc/os-release | cut -d '"' -f 2 | tr -d '.')
-        print_ok "Ubuntu detected!"
-    elif [[ -e /etc/debian_version ]]; then
-        os="debian"
-        os_version=$(cat /etc/debian_version | cut -d '.' -f 1)
-        print_ok "Debian detected!"
-    else
-        print_error "This installer seems to be running on an unsupported distribution.
-        Supported distros are ${Yellow}Debian${Color_Off} and ${Yellow}Ubuntu${Color_Off}."
-        exit
-    fi
+	if grep -qs "ubuntu" /etc/os-release; then
+		os="ubuntu"
+		os_version=$(grep 'VERSION_ID' /etc/os-release | cut -d '"' -f 2 | tr -d '.')
+		print_ok "Ubuntu detected!"
+	elif [[ -e /etc/debian_version ]]; then
+		os="debian"
+		os_version=$(cat /etc/debian_version | cut -d '.' -f 1)
+		print_ok "Debian detected!"
+	else
+		print_error "This installer seems to be running on an unsupported distribution.
+		Supported distros are ${Yellow}Debian${Color_Off} and ${Yellow}Ubuntu${Color_Off}."
+		exit
+	fi
 	if [[ "$os" == "ubuntu" && "$os_version" -lt 2004 ]]; then
-        print_error "${Yellow}Ubuntu 20.04${Color_Off} or higher is required to use this installer.
-        This version of Ubuntu is too old and unsupported."
-        exit
-    elif [[ "$os" == "debian" && "$os_version" -lt 11 ]]; then
-        print_error "${Yellow}Debian 11${Color_Off} or higher is required to use this installer.
-        This version of fedora is too old and unsupported."
-        exit
-    fi
+		print_error "${Yellow}Ubuntu 20.04${Color_Off} or higher is required to use this installer.
+		This version of Ubuntu is too old and unsupported."
+		exit
+	elif [[ "$os" == "debian" && "$os_version" -lt 11 ]]; then
+		print_error "${Yellow}Debian 11${Color_Off} or higher is required to use this installer.
+		This version of fedora is too old and unsupported."
+		exit
+	fi
 }
 
 function disable_firewalls() {
-    is_firewalld=$(systemctl list-units --type=service --state=active | grep firewalld | wc -l)
-    is_nftables=$(systemctl list-units --type=service --state=active | grep nftables | wc -l)
-    is_ufw=$(systemctl list-units --type=service --state=active | grep ufw | wc -l)
+	is_firewalld=$(systemctl list-units --type=service --state=active | grep firewalld | wc -l)
+	is_nftables=$(systemctl list-units --type=service --state=active | grep nftables | wc -l)
+	is_ufw=$(systemctl list-units --type=service --state=active | grep ufw | wc -l)
 
-    if [[ is_nftables -gt 0 ]]; then
-        systemctl stop nftables
-        systemctl disable nftables
-    fi 
+	if [[ is_nftables -gt 0 ]]; then
+		systemctl stop nftables
+		systemctl disable nftables
+	fi 
 
-    if [[ is_ufw -gt 0 ]]; then
-        systemctl stop ufw
-        systemctl disable ufw
-    fi
+	if [[ is_ufw -gt 0 ]]; then
+		systemctl stop ufw
+		systemctl disable ufw
+	fi
 
-    if [[ is_firewalld -gt 0 ]]; then
-        systemctl stop firewalld
-        systemctl disable firewalld
-    fi
+	if [[ is_firewalld -gt 0 ]]; then
+		systemctl stop firewalld
+		systemctl disable firewalld
+	fi
 }
 
 function install_nginx() {
@@ -126,58 +126,58 @@ function install_nginx() {
 }
 
 function install_deps() {
-    installit lsof tar
-    judge "Install lsof tar"
+	installit lsof tar
+	judge "Install lsof tar"
 
-    installit cron
-    judge "install crontab"
+	installit cron
+	judge "install crontab"
 
-    touch /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
-    systemctl start cron && systemctl enable cron
-    judge "crontab autostart"
+	touch /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
+	systemctl start cron && systemctl enable cron
+	judge "crontab autostart"
 
-    installit unzip
-    judge "install unzip"
+	installit unzip
+	judge "install unzip"
 
-    installit curl
-    judge "install curl"
+	installit curl
+	judge "install curl"
 
-    installit libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
-    judge "install libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev"
+	installit libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+	judge "install libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev"
 
-    installit qrencode
-    judge "install qrencode"
+	installit qrencode
+	judge "install qrencode"
 
-    installit jq
-    if ! command -v jq >/dev/null 2>&1; then
-    wget -P /usr/bin https://raw.githubusercontent.com/wulabing/Xray_onekey/main/binary/jq && chmod +x /usr/bin/jq
-    judge "install jq"
-    fi
+	installit jq
+	if ! command -v jq >/dev/null 2>&1; then
+	wget -P /usr/bin https://raw.githubusercontent.com/wulabing/Xray_onekey/main/binary/jq && chmod +x /usr/bin/jq
+	judge "install jq"
+	fi
 
-    mkdir /usr/local/bin >/dev/null 2>&1
+	mkdir /usr/local/bin >/dev/null 2>&1
 }
 
 function basic_optimization() {
-    sed -i '/^\*\ *soft\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
-    sed -i '/^\*\ *hard\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
-    echo '* soft nofile 65536' >>/etc/security/limits.conf
-    echo '* hard nofile 65536' >>/etc/security/limits.conf
+	sed -i '/^\*\ *soft\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
+	sed -i '/^\*\ *hard\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
+	echo '* soft nofile 65536' >>/etc/security/limits.conf
+	echo '* hard nofile 65536' >>/etc/security/limits.conf
 }
 
 function ip_check() {
-    local_ipv4=$(curl -s4m8 https://ip.gs)
-    local_ipv6=$(curl -s6m8 https://ip.gs)
-    if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+	local_ipv4=$(curl -s4m8 https://ip.gs)
+	local_ipv6=$(curl -s6m8 https://ip.gs)
+	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
 		print_ok "Pure IPv6 server"
 		SERVER_IP=$(curl -s6m8 https://ip.gs)
 	else
 		print_ok "Server hase IPv4"
 		SERVER_IP=$(curl -s4m8 https://ip.gs)
-    fi
+	fi
 }
 
 function cloudflare_dns() {
-    if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
 		echo "nameserver 2606:4700:4700::1111" > /etc/resolv.conf
 		echo "nameserver 2606:4700:4700::1001" >> /etc/resolv.conf
 		print_ok "server dns changed to cloudflare"
@@ -189,74 +189,74 @@ function cloudflare_dns() {
 }
 
 function domain_check() {
-    read -rp "Please enter your domain name information (example: www.google.com):" domain
-    #domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
+	read -rp "Please enter your domain name information (example: www.google.com):" domain
+	#domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
 	domain_ip=$(ping -c 1 ${domain} | grep -m 1 -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}')
-    print_ok "Getting domain IP address information, please be wait..."
-    #wgcfv4_status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
-    #wgcfv6_status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
-    #if [[ ${wgcfv4_status} =~ "on"|"plus" ]] || [[ ${wgcfv6_status} =~ "on"|"plus" ]]; then
-    #  # Turn off wgcf-warp to prevent misjudgment of VPS IP situation
-    #  wg-quick down wgcf >/dev/null 2>&1
-    #  print_ok "wgcf-warp closed"
-    #fi
-    local_ipv4=$(curl -s4m8 https://ip.gs)
-    local_ipv6=$(curl -s6m8 https://ip.gs)
-    if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
-        # Pure IPv6 VPS, automatically add DNS64 server for acme.sh to apply for certificate
-        echo -e nameserver 2606:4700:4700::1111 > /etc/resolv.conf
-        print_ok "Recognized VPS as IPv6 Only, automatically add DNS64 server"
-    fi
-    echo -e "DNS-resolved IP address of the domain name: ${domain_ip}"
-    echo -e "Local public network IPv4 address ${local_ipv4}"
-    echo -e "Local public network IPv6 address ${local_ipv6}"
-    sleep 2
-    if [[ ${domain_ip} == ${local_ipv4} ]]; then
-        print_ok "The DNS-resolved IP address of the domain name matches the native IPv4 address"
-        sleep 2
-    elif [[ ${domain_ip} == ${local_ipv6} ]]; then
-        print_ok "The DNS-resolved IP address of the domain name matches the native IPv6 address"
-        sleep 2
-    else
-        print_error "Please make sure that the correct A/AAAA records are added to the domain name, otherwise xray will not work properly"
-        print_error "The IP address of the domain name resolved through DNS does not match the native IPv4/IPv6 address, 
-        do you want to continue the installation? (y/n)" && read -r install
-        case $install in
-        [yY][eE][sS] | [yY])
-          print_ok "Continue Installation"
-          sleep 2
-          ;;
-        *)
-          print_error "Installation terminated"
-          exit 2
-          ;;
-        esac
-    fi
+	print_ok "Getting domain IP address information, please be wait..."
+	#wgcfv4_status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
+	#wgcfv6_status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
+	#if [[ ${wgcfv4_status} =~ "on"|"plus" ]] || [[ ${wgcfv6_status} =~ "on"|"plus" ]]; then
+	#  # Turn off wgcf-warp to prevent misjudgment of VPS IP situation
+	#  wg-quick down wgcf >/dev/null 2>&1
+	#  print_ok "wgcf-warp closed"
+	#fi
+	local_ipv4=$(curl -s4m8 https://ip.gs)
+	local_ipv6=$(curl -s6m8 https://ip.gs)
+	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+		# Pure IPv6 VPS, automatically add DNS64 server for acme.sh to apply for certificate
+		echo -e nameserver 2606:4700:4700::1111 > /etc/resolv.conf
+		print_ok "Recognized VPS as IPv6 Only, automatically add DNS64 server"
+	fi
+	echo -e "DNS-resolved IP address of the domain name: ${domain_ip}"
+	echo -e "Local public network IPv4 address ${local_ipv4}"
+	echo -e "Local public network IPv6 address ${local_ipv6}"
+	sleep 2
+	if [[ ${domain_ip} == ${local_ipv4} ]]; then
+		print_ok "The DNS-resolved IP address of the domain name matches the native IPv4 address"
+		sleep 2
+	elif [[ ${domain_ip} == ${local_ipv6} ]]; then
+		print_ok "The DNS-resolved IP address of the domain name matches the native IPv6 address"
+		sleep 2
+	else
+		print_error "Please make sure that the correct A/AAAA records are added to the domain name, otherwise xray will not work properly"
+		print_error "The IP address of the domain name resolved through DNS does not match the native IPv4/IPv6 address, 
+		do you want to continue the installation? (y/n)" && read -r install
+		case $install in
+		[yY][eE][sS] | [yY])
+		  print_ok "Continue Installation"
+		  sleep 2
+		  ;;
+		*)
+		  print_error "Installation terminated"
+		  exit 2
+		  ;;
+		esac
+	fi
 }
 
 function port_exist_check() {
-    if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
-        print_ok "$1 Port is not in use"
-        sleep 1
-    else
-        print_error "It is detected that port $1 is occupied, the following is the occupancy information of port $1"
-        lsof -i:"$1"
-        print_error "After 5s, it will try to kill the occupied process automatically"
-        sleep 5
-        lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
-        print_ok "Kill Finished"
-        sleep 1
-    fi
+	if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
+		print_ok "$1 Port is not in use"
+		sleep 1
+	else
+		print_error "It is detected that port $1 is occupied, the following is the occupancy information of port $1"
+		lsof -i:"$1"
+		print_error "After 5s, it will try to kill the occupied process automatically"
+		sleep 5
+		lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
+		print_ok "Kill Finished"
+		sleep 1
+	fi
 }
 
 function xray_tmp_config_file_check_and_use() {
-    if [[ -s ${xray_conf_dir}/config_tmp.json ]]; then
-        mv -f ${xray_conf_dir}/config_tmp.json ${xray_conf_dir}/config.json
-    else
-        print_error "can't modify xray config file!"
+	if [[ -s ${xray_conf_dir}/config_tmp.json ]]; then
+		mv -f ${xray_conf_dir}/config_tmp.json ${xray_conf_dir}/config.json
+	else
+		print_error "can't modify xray config file!"
 		exit 1
-    fi
-    touch ${xray_conf_dir}/config_tmp.json
+	fi
+	touch ${xray_conf_dir}/config_tmp.json
 }
 
 function restart_nginx(){
@@ -345,7 +345,7 @@ function install_gost_and_go_notls() {
 	tar -C /usr/local -xzf go1.19.2.linux-amd64.tar.gz
 	judge "install Golang"
 
-    gunzip gost-linux-amd64-2.11.4.gz
+	gunzip gost-linux-amd64-2.11.4.gz
 	judge "Gost extract"
 	mv gost-linux-amd64-2.11.4 /usr/local/bin/gost
 	judge "move Gost"
@@ -379,7 +379,7 @@ function install_gost_and_go_tls() {
 	tar -C /usr/local -xzf go1.19.2.linux-amd64.tar.gz
 	judge "install Golang"
 
-    gunzip gost-linux-amd64-2.11.4.gz
+	gunzip gost-linux-amd64-2.11.4.gz
 	judge "Gost extract"
 	mv gost-linux-amd64-2.11.4 /usr/local/bin/gost
 	judge "move Gost"
@@ -408,44 +408,44 @@ EOF
 }
 
 function xray_install() {
-    print_ok "Installing Xray"
-    curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install
-    judge "Xray Installation"
+	print_ok "Installing Xray"
+	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install
+	judge "Xray Installation"
 
-    # Import link for Xray generation
-    echo $domain >$domain_tmp_dir/domain
-    judge "Domain name record"
+	# Import link for Xray generation
+	echo $domain >$domain_tmp_dir/domain
+	judge "Domain name record"
 	groupadd nobody
 	gpasswd -a nobody nobody
 	judge "add nobody group"
 }
 
 function modify_port() {
-    read -rp "Please enter the port number (default: 8080): " PORT
-    [ -z "$PORT" ] && PORT="8080"
-    if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
-        print_error "Port must be in range of 0-65535"
-        exit 1
-    fi
-    port_exist_check $PORT
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${xray_conf_dir}/config_tmp.json
-    xray_tmp_config_file_check_and_use
-    judge "Xray port modification"
+	read -rp "Please enter the port number (default: 8080): " PORT
+	[ -z "$PORT" ] && PORT="8080"
+	if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
+		print_error "Port must be in range of 0-65535"
+		exit 1
+	fi
+	port_exist_check $PORT
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${xray_conf_dir}/config_tmp.json
+	xray_tmp_config_file_check_and_use
+	judge "Xray port modification"
 }
 
 function modify_UUID() {
-    [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray UUID"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
+	[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray UUID"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 function modify_UUID_ws() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray ws UUID"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray ws UUID"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 #function modify_fallback_ws() {
@@ -474,10 +474,10 @@ function modify_tls() {
 }
 
 function modify_PASSWORD() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray Trojan Password"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray Trojan Password"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
 }
 
 # ==================== Modify Ultimate Config ==================== #
@@ -556,7 +556,7 @@ function configure_certbot() {
 	cp /etc/letsencrypt/archive/$domain/privkey1.pem /ssl/xray.key
 	judge "copy key file"
 
-    chown -R nobody.$cert_group /ssl/*
+	chown -R nobody.$cert_group /ssl/*
 	certFile="/ssl/xray.crt"
 	keyFile="/ssl/xray.key"
 }
@@ -567,18 +567,18 @@ function renew_certbot() {
 }
 
 function xray_uninstall() {
-    curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
-    rm -rf $website_dir/*
-    print_ok "Do you want to uninstall Nginx [y/n]?"
-    read -r uninstall_nginx
-    case $uninstall_nginx in
-    [yY][eE][sS] | [yY])
+	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
+	rm -rf $website_dir/*
+	print_ok "Do you want to uninstall Nginx [y/n]?"
+	read -r uninstall_nginx
+	case $uninstall_nginx in
+	[yY][eE][sS] | [yY])
 		rm -rf /var/www/html/*
 		systemctl disable --now nginx.service
-        apt purge nginx -y
-        ;;
-    *) ;;
-    esac
+		apt purge nginx -y
+		;;
+	*) ;;
+	esac
 
 	if [[ -f /root/.acme.sh/ ]]; then
 		print_ok "Uninstall acme [y/n]?"
@@ -594,29 +594,29 @@ function xray_uninstall() {
 	fi
 
 	print_ok "Uninstall certbot? [y/n]?"
-    read -r uninstall_certbot
-    case $uninstall_certbot in
-    [yY][eE][sS] | [yY])
+	read -r uninstall_certbot
+	case $uninstall_certbot in
+	[yY][eE][sS] | [yY])
 		apt purge certbot python3-certbot -y
 		rm -rf /etc/letsencrypt/
 		rm -rf /var/log/letsencrypt/
 		rm -rf /etc/systemd/system/*certbot*
-        rm -rf /ssl/
-        ;;
-    *) ;;
-    esac
+		rm -rf /ssl/
+		;;
+	*) ;;
+	esac
 
 	#print_ok "Remove SSL certificates? [y/n]?"
 	#read -r remove_ssl_certs
 	#case $remove_ssl_certs in 
 	#	[yY][eE][sS] | [yY])
-    #    rm -rf /ssl/
+	#    rm -rf /ssl/
 	#	;;
 	#*) ;;
 	#esac
 
-    print_ok "Uninstall complete"
-    exit 0
+	print_ok "Uninstall complete"
+	exit 0
 }
 
 function restart_all() {
@@ -716,21 +716,21 @@ function vmess_ws_link_gen() {
 }
 
 function vmess_ws() {
-    check_bash
-    check_root
-    check_os
-    disable_firewalls
-    install_deps
-    basic_optimization
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
 	ip_check
-    xray_install
+	xray_install
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-s/config_server.json
 	judge "Download configuration"
-    modify_port
-    modify_UUID
+	modify_port
+	modify_UUID
 	modify_ws
-    restart_xray
-    vmess_ws_link_gen
+	restart_xray
+	vmess_ws_link_gen
 }
 
 
@@ -777,25 +777,25 @@ function vmess_ws_nginx_link_gen() {
 }
 
 function vmess_ws_nginx() {
-    check_bash
-    check_root
-    check_os
-    disable_firewalls
-    install_deps
-    basic_optimization
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
 	ip_check
 	port_exist_check 80
-    xray_install
+	xray_install
 	install_nginx
 	configure_nginx_reverse_proxy_notls
 	setup_fake_website
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
 	judge "Download configuration"
-    modify_UUID
+	modify_UUID
 	modify_ws
 	add_wsPath_to_nginx
 	restart_all
-    vmess_ws_nginx_link_gen
+	vmess_ws_nginx_link_gen
 }
 
 # ==== VMESS + WS + Nginx + TLS ====
@@ -811,17 +811,17 @@ function vmess_ws_nginx_tls_link_gen() {
 
 function vmess_ws_nginx_tls() {
 	check_bash
-    check_root
-    check_os
-    disable_firewalls
-    install_deps
-    basic_optimization
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
 	ip_check
 	domain_check
 	configure_certbot
 	port_exist_check 80
 	port_exist_check 443
-    xray_install
+	xray_install
 	install_nginx
 	configure_nginx_reverse_proxy_tls
 	add_wsPath_to_nginx
@@ -832,7 +832,7 @@ function vmess_ws_nginx_tls() {
 	modify_UUID
 	modify_ws
 	restart_all
-    vmess_ws_nginx_tls_link_gen
+	vmess_ws_nginx_tls_link_gen
 }
 
 # VMESS + TCP
@@ -1027,8 +1027,8 @@ function ultimate_server_config() {
 # ===================================== #
 
 function greetings_screen() {
-    clear
-    echo -e '
+	clear
+	echo -e '
 $$\   $$\ $$$$$$$\   $$$$$$\ $$\     $$\       $$\   $$\ $$\   $$\ 
 $$ |  $$ |$$ .__$$\ $$  __$$\ $$\   $$  |      $$ |  $$ |$$ |  $$ |
 \$$\ $$  |$$ |  $$ |$$ /  $$ |\$$\ $$  /       $$ |  $$ |\$$\ $$  |
@@ -1069,7 +1069,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
-    1)
+	1)
 		ultimate_server_config
 		;;
 	2)
@@ -1126,7 +1126,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	*)
 		print_error "Invalid Option. Run script again!"
 		exit 1
-    esac
+	esac
 }
 
 greetings_screen "$@"
