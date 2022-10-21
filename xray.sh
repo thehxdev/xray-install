@@ -1004,7 +1004,6 @@ function ultimate_server_config() {
 	basic_optimization
 	ip_check
 	domain_check
-	port_exist_check 80
 	port_exist_check 443
 	xray_install
 	configure_certbot
