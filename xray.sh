@@ -692,19 +692,23 @@ function xray_uninstall() {
 		rm -rf /var/www/html/*
 		systemctl disable --now nginx.service
         apt purge nginx -y
+		rm -rf /etc/nginx/
         ;;
     *) ;;
     esac
 
-    #print_ok "Uninstall acme [y/n]?"
-    #read -r uninstall_acme
-    #case $uninstall_acme in
-    #[yY][eE][sS] | [yY])
-    #    "$HOME"/.acme.sh/acme.sh --uninstall
-    #    rm -rf /root/.acme.sh
-    #    ;;
-    #*) ;;
-    #esac
+	if [[ -f /root/.acme.sh/ ]]; then
+		print_ok "Uninstall acme [y/n]?"
+		read -r uninstall_acme
+		case $uninstall_acme in
+		[yY][eE][sS] | [yY])
+			"$HOME"/.acme.sh/acme.sh --uninstall
+			rm -rf /root/.acme.sh
+			rm -rf /root/.ssl/
+			;;
+		*) ;;
+		esac
+	fi
 
 	print_ok "Uninstall certbot? [y/n]?"
     read -r uninstall_certbot
