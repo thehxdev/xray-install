@@ -579,7 +579,7 @@ function xray_uninstall() {
 		rm -rf /var/www/html/*
 		systemctl disable --now nginx.service
         apt purge nginx -y
-		rm -rf /etc/nginx/
+		#rm -rf /etc/nginx/
         ;;
     *) ;;
     esac
@@ -1016,6 +1016,7 @@ function ultimate_server_config() {
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-TCP-XTLS-WHATEVER/config_server.json
 	judge "Download configuration"
 	wget -O /etc/nginx/sites-available/default https://pastebin.com/raw/wa4gwhrs
+	judge "Download Nginx configuration"
 	modify_UUID_VLESS_XTLS
 	modify_UUID_VLESS_WS
 	modify_UUID_VMESS_WS
