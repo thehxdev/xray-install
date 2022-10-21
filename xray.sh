@@ -1015,7 +1015,7 @@ function ultimate_server_config() {
 	install_nginx
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-TCP-XTLS-WHATEVER/config_server.json
 	judge "Download configuration"
-	wget -O /etc/nginx/sites-available/default https://pastebin.com/raw/wa4gwhrs
+	wget -O /etc/nginx/sites-enabled/default https://pastebin.com/raw/wa4gwhrs
 	judge "Download Nginx configuration"
 	modify_UUID_VLESS_XTLS
 	modify_UUID_VLESS_WS
