@@ -1016,7 +1016,7 @@ function ultimate_server_config() {
 	#mkdir -p /etc/nginx/ >/dev/null 2>&1
 	wget -O ${nginx_conf_new} https://pastebin.com/raw/wa4gwhrs
 	judge "Download Nginx configuration"
-	sed -i 's/DOMAIN/${domain}/g' /etc/nginx/nginx.conf
+	sed -i "s/DOMAIN/${domain}/g" /etc/nginx/nginx.conf
 	setup_fake_website
 	modify_UUID_VLESS_XTLS
 	modify_UUID_VLESS_WS
