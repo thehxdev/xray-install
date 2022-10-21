@@ -977,13 +977,13 @@ function vless_u_tls_link_gen() {
 
 function vless_u_ws_tls_link_gen() {
 	UUID2_2=$(cat ${xray_conf_dir}/config.json | jq .inbounds[2].settings.clients[0].id | tr -d '"')
-	server_link_vless_ws_tls=$(echo -neE "$UUID2_2@$SERVER_IP:443?sni=$domain&security=tls&type=ws&path=$WS_PATH1#$config_name")
+	server_link_vless_ws_tls=$(echo -neE "$UUID2_2@$SERVER_IP:443?sni=$domain&security=tls&type=ws&path=$WS_PATH1#ultimate_xray_vless_ws_tls")
 	echo -ne "\n${Green}VLESS+WS+TLS Link: ${Yellow}vless://$server_link_vless_ws_tls${Color_Off}\n"
 }
 
 function vmess_u_ws_tls_link_gen() {
 	UUID3_3=$(cat ${xray_conf_dir}/config.json | jq .inbounds[3].settings.clients[0].id | tr -d '"')
-	server_link_vmess_ws_tls=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID3_3\",\"net\": \"ws\",\"path\": \"$WS_PATH2\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+	server_link_vmess_ws_tls=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID3_3\",\"net\": \"ws\",\"path\": \"$WS_PATH2\",\"port\": \"443\",\"ps\": \"ultimate_xray_vmess_ws_tls\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 	echo -ne "\n${Green}VMESS+WS+TLS Link: ${Yellow}vmess://$server_link_vmess_ws_tls${Color_Off}\n"
 }
 
