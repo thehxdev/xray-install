@@ -22,7 +22,6 @@ domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
-nginx_conf_new="/etc/nginx/nginx.conf"
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
@@ -577,7 +576,6 @@ function xray_uninstall() {
 		rm -rf /var/www/html/*
 		systemctl disable --now nginx.service
         apt purge nginx -y
-		#rm -rf /etc/nginx/
         ;;
     *) ;;
     esac
@@ -1010,21 +1008,20 @@ function ultimate_server_config() {
 	port_exist_check 443
 	xray_install
 	configure_certbot
-	install_nginx
+	#install_nginx
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-TCP-XTLS-WHATEVER/config_server.json
 	judge "Download configuration"
-	#mkdir -p /etc/nginx/ >/dev/null 2>&1
-	wget -O ${nginx_conf_new} https://pastebin.com/raw/wa4gwhrs
-	judge "Download Nginx configuration"
-	sed -i "s/DOMAIN/${domain}/g" /etc/nginx/nginx.conf
-	setup_fake_website
+	#wget -O ${nginx_conf} https://pastebin.com/raw/wa4gwhrs
+	#judge "Download Nginx configuration"
+	#sed -i "s/DOMAIN/${domain}/g" /etc/nginx/nginx.conf
+	#setup_fake_website
 	modify_UUID_VLESS_XTLS
 	modify_UUID_VLESS_WS
 	modify_UUID_VMESS_WS
 	modify_ws_VLESS_WS
 	modify_ws_VMESS_WS
 	modify_PASSWORD_trojan
-	restart_all
+	restart_xray
 	ultimate_server_config_link_gen
 }
 
