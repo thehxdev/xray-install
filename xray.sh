@@ -21,6 +21,7 @@ cert_dir="/root/.ssl"
 domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
+nginx_conf="/etc/nginx/sites-available/default"
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
@@ -266,8 +267,7 @@ function restart_nginx(){
 }
 
 #function conf_nginx_notls() {
-#    nginx_conf="/etc/nginx/sites-available/default"
-#    rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample.conf
+#    rm -rf ${nginx_conf} && wget -O ${nginx_conf} https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample.conf
 #	judge "nginx config download"
 #
 #	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
@@ -278,8 +278,7 @@ function restart_nginx(){
 #}
 #
 #function conf_nginx_tls() {
-#	nginx_conf="/etc/nginx/sites-available/default"
-#	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample_tls.conf
+#	rm -rf ${nginx_conf} && wget -O ${nginx_conf} https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample_tls.conf
 #	judge "nginx config download"
 #
 #	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
@@ -290,8 +289,7 @@ function restart_nginx(){
 #}
 
 function configure_nginx_reverse_proxy_tls() {
-	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_reverse_proxy_tls.conf
+	rm -rf ${nginx_conf} && wget -O ${nginx_conf} https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_reverse_proxy_tls.conf
 	judge "Nginx config Download"
 
 	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
@@ -299,8 +297,7 @@ function configure_nginx_reverse_proxy_tls() {
 }
 
 function configure_nginx_reverse_proxy_notls() {
-	nginx_conf="/etc/nginx/sites-available/default"
-	rm -rf /etc/nginx/sites-available/default && wget -O /etc/nginx/sites-available/default https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_reverse_proxy_notls.conf
+	rm -rf ${nginx_conf} && wget -O ${nginx_conf} https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_reverse_proxy_notls.conf
 	judge "Nginx config Download"
 
 	sed -i "s/YOUR_DOMAIN/${local_ipv4}/g" ${nginx_conf}
@@ -1018,7 +1015,7 @@ function ultimate_server_config() {
 	mkdir -p /etc/nginx/ >/dev/null 2>&1
 	wget -O /etc/nginx/nginx.conf https://pastebin.com/raw/wa4gwhrs
 	judge "Download Nginx configuration"
-	sed -i 's|DOMAIN|$domain|g' /etc/nginx/nginx.conf
+	sed -i 's/DOMAIN/${domain}/g' /etc/nginx/nginx.conf
 	modify_UUID_VLESS_XTLS
 	modify_UUID_VLESS_WS
 	modify_UUID_VMESS_WS
