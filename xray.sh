@@ -22,6 +22,7 @@ domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
+nginx_conf_new="/etc/nginx/nginx.conf"
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
@@ -1012,10 +1013,11 @@ function ultimate_server_config() {
 	install_nginx
 	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-TCP-XTLS-WHATEVER/config_server.json
 	judge "Download configuration"
-	mkdir -p /etc/nginx/ >/dev/null 2>&1
-	wget -O /etc/nginx/nginx.conf https://pastebin.com/raw/wa4gwhrs
+	#mkdir -p /etc/nginx/ >/dev/null 2>&1
+	wget -O ${nginx_conf_new} https://pastebin.com/raw/wa4gwhrs
 	judge "Download Nginx configuration"
 	sed -i 's/DOMAIN/${domain}/g' /etc/nginx/nginx.conf
+	setup_fake_website
 	modify_UUID_VLESS_XTLS
 	modify_UUID_VLESS_WS
 	modify_UUID_VMESS_WS
