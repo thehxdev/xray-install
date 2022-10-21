@@ -518,7 +518,7 @@ function modify_ws_VLESS_WS() {
 	judge "modify Xray VLESS WS"
 	xray_tmp_config_file_check_and_use
 	judge "change tmp file to main file"
-	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings,"fallbacks",1,"path"];"'${WS_PATH1}'")' >${xray_conf_dir}/config_tmp.json
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",1,"path"];"'${WS_PATH1}'")' >${xray_conf_dir}/config_tmp.json
 	judge "modify Xray VLESS WS FALLBACK"
 	xray_tmp_config_file_check_and_use
 	judge "change tmp file to main file"
