@@ -516,7 +516,7 @@ function modify_UUID_VMESS_WS() {
 }
 
 function modify_ws_VLESS_WS() {
-	[ -z "$WS_PATH1"] && WS_PATH1="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+	[ -z "$WS_PATH1" ] && WS_PATH1="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",2,"streamSettings","wsSettings","path"];"'${WS_PATH1}'")' >${xray_conf_dir}/config_tmp.json
 	judge "modify Xray VLESS WS"
 	xray_tmp_config_file_check_and_use
@@ -554,9 +554,9 @@ function configure_certbot() {
 	certbot certonly --standalone --preferred-challenges http --register-unsafely-without-email -d $domain
 	judge "certbot ssl certification"
 
-	cp /etc/letsencrypt/live/$domain/fullchain.pem /ssl/xray.crt
+	cp /etc/letsencrypt/archive/$domain/fullchain1.pem /ssl/xray.crt
 	judge "copy cert file"
-	cp /etc/letsencrypt/live/$domain/privkey.pem /ssl/xray.key
+	cp /etc/letsencrypt/archive/$domain/privkey1.pem /ssl/xray.key
 	judge "copy key file"
 
     chown -R nobody.$cert_group /ssl/*
@@ -968,6 +968,36 @@ function trojan_ws_tls() {
 }
 
 # Ultimate conf
+function trojan_u_link_gen() {
+	server_link_trojan=$(echo -neE "$PASSWORD@$SERVER_IP:443?sni=$domain&security=tls&type=tcp#ultimate_xray_trojan")
+	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link_trojan${Color_Off}\n"
+}
+
+function vless_u_tls_link_gen() {
+	UUID1_1=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+	server_link_vless_tls=$(echo -neE "$UUID1_1@$SERVER_IP:443?sni=$domain&security=tls&type=tcp#ultimate_xray_vless_tls")
+	echo -ne "${Green}VLESS+TCP+TLS Link: ${Yellow}vless://$server_link_vless_tls${Color_Off}\n"
+}
+
+function vless_u_ws_tls_link_gen() {
+	UUID2_2=$(cat ${xray_conf_dir}/config.json | jq .inbounds[2].settings.clients[0].id | tr -d '"')
+	server_link_vless_ws_tls=$(echo -neE "$UUID2_2@$SERVER_IP:443?sni=$domain&security=tls&type=ws&path=$WS_PATH1#$config_name")
+	echo -ne "${Green}VLESS+WS+TLS Link: ${Yellow}vless://$server_link_vless_ws_tls${Color_Off}\n"
+}
+
+function vmess_u_ws_tls_link_gen() {
+	UUID3_3=$(cat ${xray_conf_dir}/config.json | jq .inbounds[3].settings.clients[0].id | tr -d '"')
+	server_link_vmess_ws_tls=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID3_3\",\"net\": \"ws\",\"path\": \"$WS_PATH2\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+	echo -ne "${Green}VMESS+WS+TLS Link: ${Yellow}vmess://$server_link_vmess_ws_tls${Color_Off}\n"
+}
+
+function ultimate_server_config_link_gen() {
+	vless_u_tls_link_gen
+	vless_u_ws_tls_link_gen
+	vmess_u_ws_tls_link_gen
+	trojan_u_link_gen
+}
+
 
 function ultimate_server_config() {
 	check_bash
@@ -991,7 +1021,8 @@ function ultimate_server_config() {
 	modify_ws_VLESS_WS
 	modify_ws_VMESS_WS
 	modify_PASSWORD_trojan
-
+	restart_all
+	ultimate_server_config_link_gen
 }
 
 # ===================================== #
