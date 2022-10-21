@@ -439,7 +439,7 @@ function modify_port() {
 function modify_UUID() {
     [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
     cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray TCP UUID"
+    judge "modify Xray UUID"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
 }
@@ -482,6 +482,64 @@ function modify_PASSWORD() {
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
 }
+
+# ==================== Modify Ultimate Config ==================== #
+function modify_PASSWORD_trojan() {
+    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
+    judge "modify Xray Trojan Password"
+    xray_tmp_config_file_check_and_use
+    judge "change tmp file to main file"
+}
+
+function modify_UUID_VLESS_XTLS() {
+    [ -z "$UUID1" ] && UUID1=$(cat /proc/sys/kernel/random/uuid)
+    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID1}'")' >${xray_conf_dir}/config_tmp.json
+    judge "modify VLESS XTLS UUID"
+    xray_tmp_config_file_check_and_use
+    judge "change tmp file to main file"
+}
+
+function modify_UUID_VLESS_WS() {
+    [ -z "$UUID2" ] && UUID2=$(cat /proc/sys/kernel/random/uuid)
+    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",2,"settings","clients",0,"id"];"'${UUID2}'")' >${xray_conf_dir}/config_tmp.json
+    judge "modify Xray VLESS WS UUID"
+    xray_tmp_config_file_check_and_use
+    judge "change tmp file to main file"
+}
+
+function modify_UUID_VMESS_WS() {
+    [ -z "$UUID3" ] && UUID3=$(cat /proc/sys/kernel/random/uuid)
+    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",3,"settings","clients",0,"id"];"'${UUID3}'")' >${xray_conf_dir}/config_tmp.json
+    judge "modify Xray VLESS WS UUID"
+    xray_tmp_config_file_check_and_use
+    judge "change tmp file to main file"
+}
+
+function modify_ws_VLESS_WS() {
+	[ -z "$WS_PATH1"] && WS_PATH1="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",2,"streamSettings","wsSettings","path"];"'${WS_PATH1}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray VLESS WS"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"fallbacks",1,"path"];"'${WS_PATH1}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray VLESS WS FALLBACK"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
+}
+
+function modify_ws_VMESS_WS() {
+	[ -z "$WS_PATH2"] && WS_PATH2="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",3,"streamSettings","wsSettings","path"];"'${WS_PATH2}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray VMESS WS"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"fallbacks",2,"path"];"'${WS_PATH2}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray VMESS WS FALLBACK"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
+}
+
+# ==================== Modify Ultimate Config ==================== #
 
 #function configure_xray() {
 #	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/main/config/xray_xtls-rprx-direct.json
@@ -1078,6 +1136,27 @@ function trojan_ws_tls() {
 	modify_tls
 	restart_xray
 	trojan_ws_tls_link_gen
+}
+
+# Ultimate conf
+
+function ultimate_server_config() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	domain_check
+	port_exist_check 80
+	port_exist_check 443
+	xray_install
+	configure_certbot
+	install_nginx
+	wget -O ${xray_conf_dir}/config.json 
+	judge "Download configuration"
+
 }
 
 # ===================================== #
