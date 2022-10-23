@@ -632,7 +632,8 @@ function restart_xray() {
 }
 
 function bbr_boost() {
-	wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+	#bash -c $(curl -L https://raw.githubusercontent.com/teddysun/across/master/bbr.sh)
+	wget -N --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh && chmod +x bbr.sh && bash bbr.sh
 }
 
 # ========== VLESS ========== #
