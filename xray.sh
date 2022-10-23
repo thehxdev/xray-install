@@ -1064,7 +1064,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "${Green}14. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "========== Settings =========="
 	echo -e "${Green}15. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}16. Enable BBR TCP Boost ${Red}(NOT Tested)${Color_Off}"
+	echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
 	echo -e "${Red}17. Uninstall Xray${Color_Off}"
 	echo -e "${Yellow}18. Exit${Color_Off}\n"
 
