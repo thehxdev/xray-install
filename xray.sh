@@ -106,17 +106,17 @@ function disable_firewalls() {
 	is_nftables=$(systemctl list-units --type=service --state=active | grep nftables | wc -l)
 	is_ufw=$(systemctl list-units --type=service --state=active | grep ufw | wc -l)
 
-	if [[ is_nftables -gt 0 ]]; then
+	if [[ "$is_nftables" -ne 0 ]]; then
 		systemctl stop nftables
 		systemctl disable nftables
 	fi 
 
-	if [[ is_ufw -gt 0 ]]; then
+	if [[ "$is_ufw" -ne 0 ]]; then
 		systemctl stop ufw
 		systemctl disable ufw
 	fi
 
-	if [[ is_firewalld -gt 0 ]]; then
+	if [[ "$is_firewalld" -ne 0 ]]; then
 		systemctl stop firewalld
 		systemctl disable firewalld
 	fi
@@ -178,6 +178,7 @@ function ip_check() {
 }
 
 function cloudflare_dns() {
+	ip_check
 	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
 		echo "nameserver 2606:4700:4700::1111" > /etc/resolv.conf
 		echo "nameserver 2606:4700:4700::1001" >> /etc/resolv.conf
