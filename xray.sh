@@ -182,11 +182,11 @@ function cloudflare_dns() {
 	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
 		echo "nameserver 2606:4700:4700::1111" > /etc/resolv.conf
 		echo "nameserver 2606:4700:4700::1001" >> /etc/resolv.conf
-		print_ok "server dns changed to cloudflare"
+		judge "add IPv6 DNS to resolv.conf"
 	else
 		echo "nameserver 1.1.1.1" > /etc/resolv.conf
 		echo "nameserver 1.0.0.1" >> /etc/resolv.conf
-		print_ok "server dns changed to cloudflare"
+		judge "add IPv4 DNS to resolv.conf"
 	fi
 }
 
