@@ -22,6 +22,7 @@ domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
+go_version="1.19.2"
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
@@ -328,9 +329,9 @@ function setup_fake_website() {
 function send_go_and_gost() {
 	read -rp "Domestic relay IP:" domestic_relay_ip
 	cd /root/
-	wget https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
+	wget https://go.dev/dl/go${go_version}.linux-amd64.tar.gz
 	judge "Golang Download"
-	scp ./go1.19.2.linux-amd64.tar.gz root@${domestic_relay_ip}:/root/
+	scp ./go${go_version}.linux-amd64.tar.gz root@${domestic_relay_ip}:/root/
 	judge "send Golang to domestic relay"
 
 	wget https://github.com/ginuerzh/gost/releases/download/v2.11.4/gost-linux-amd64-2.11.4.gz
@@ -342,7 +343,7 @@ function send_go_and_gost() {
 function install_gost_and_go_notls() {
 	read -rp "Foreign server IP:" foreign_server_ip
 	rm -rf /usr/local/go 
-	tar -C /usr/local -xzf go1.19.2.linux-amd64.tar.gz
+	tar -C /usr/local -xzf go${go_version}.linux-amd64.tar.gz
 	judge "install Golang"
 
 	gunzip gost-linux-amd64-2.11.4.gz
@@ -376,7 +377,7 @@ EOF
 function install_gost_and_go_tls() {
 	read -rp "Foreign server IP:" foreign_server_ip
 	rm -rf /usr/local/go 
-	tar -C /usr/local -xzf go1.19.2.linux-amd64.tar.gz
+	tar -C /usr/local -xzf go${go_version}.linux-amd64.tar.gz
 	judge "install Golang"
 
 	gunzip gost-linux-amd64-2.11.4.gz
