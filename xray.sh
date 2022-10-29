@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 
 # Colors
-Color_Off='\033[0m'       # Text Reset
-Black='\033[0;30m'        # Black
-Red='\033[0;31m'          # Red
-Green='\033[0;32m'        # Green
-Yellow='\033[0;33m'       # Yellow
-Blue='\033[0;34m'         # Blue
-Purple='\033[0;35m'       # Purple 
-Cyan='\033[0;36m'         # Cyan
-White='\033[0;37m'        # White Variables
+Color_Off='\033[0m'
+Black='\033[0;30m' 
+Red='\033[0;31m'   
+Green='\033[0;32m' 
+Yellow='\033[0;33m'
+Blue='\033[0;34m'  
+Purple='\033[0;35m'
+Cyan='\033[0;36m'  
+White='\033[0;37m' 
 
 # Variables 
-github_branch="main"
+#github_branch="main"
 xray_conf_dir="/usr/local/etc/xray"
 website_dir="/var/www/html" 
-xray_access_log="/var/log/xray/access.log"
-xray_error_log="/var/log/xray/error.log"
-cert_dir="/root/.ssl"
+#xray_access_log="/var/log/xray/access.log"
+#xray_error_log="/var/log/xray/error.log"
+#cert_dir="/root/.ssl"
 domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
@@ -102,9 +102,9 @@ function check_os() {
 }
 
 function disable_firewalls() {
-	is_firewalld=$(systemctl list-units --type=service --state=active | grep firewalld | wc -l)
-	is_nftables=$(systemctl list-units --type=service --state=active | grep nftables | wc -l)
-	is_ufw=$(systemctl list-units --type=service --state=active | grep ufw | wc -l)
+	is_firewalld=$(systemctl list-units --type=service --state=active | grep -c firewalld)
+	is_nftables=$(systemctl list-units --type=service --state=active | grep -c nftables)
+	is_ufw=$(systemctl list-units --type=service --state=active | grep -c ufw)
 
 	if [[ "$is_nftables" -ne 0 ]]; then
 		systemctl stop nftables
@@ -527,7 +527,7 @@ function modify_ws_VLESS_WS() {
 }
 
 function modify_ws_VMESS_WS() {
-	[ -z "$WS_PATH2"] && WS_PATH2="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+	[ -z "$WS_PATH2" ] && WS_PATH2="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",3,"streamSettings","wsSettings","path"];"'${WS_PATH2}'")' >${xray_conf_dir}/config_tmp.json
 	judge "modify Xray VMESS WS"
 	xray_tmp_config_file_check_and_use
