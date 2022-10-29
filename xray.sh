@@ -68,7 +68,7 @@ function check_bash() {
 # Check root
 function check_root() {
 	if [[ "$EUID" -ne 0 ]]; then
-		print_error "This installer needs to be run with superuser privileges. Login as root user and run the script again!\n"
+		print_error "This installer needs to be run with superuser privileges. Login as root user and run the script again!"
 		exit
 	else 
 		print_ok "Root user checked!" ; $SLEEP
@@ -94,7 +94,7 @@ function check_os() {
 		print_error "${Yellow}Ubuntu 20.04${Color_Off} or higher is required to use this installer.
 		This version of Ubuntu is too old and unsupported."
 		exit
-	elif [[ "$os" == "debian" && "$os_version" -lt 11 ]]; then
+	elif [[ "$os" == "debian" && "$os_version" -lt 10 ]]; then
 		print_error "${Yellow}Debian 11${Color_Off} or higher is required to use this installer.
 		This version of fedora is too old and unsupported."
 		exit
@@ -150,10 +150,11 @@ function install_deps() {
 	judge "install qrencode"
 
 	installit jq
-	if ! command -v jq >/dev/null 2>&1; then
-	wget -P /usr/bin https://raw.githubusercontent.com/wulabing/Xray_onekey/main/binary/jq && chmod +x /usr/bin/jq
 	judge "install jq"
-	fi
+	#if ! command -v jq >/dev/null 2>&1; then
+	#	wget -P /usr/bin https://raw.githubusercontent.com/wulabing/Xray_onekey/main/binary/jq && chmod +x /usr/bin/jq
+	#	judge "install jq"
+	#fi
 
 	mkdir /usr/local/bin >/dev/null 2>&1
 }
