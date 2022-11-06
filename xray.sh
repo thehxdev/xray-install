@@ -1187,7 +1187,9 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		bbr_boost
 		;;
 	17)
-		get_config_link
+		#get_config_link
+		print_error "This Future Is NOT Ready Yet."
+		exit 0
 		;;
 	18)
 		xray_uninstall
