@@ -1052,10 +1052,15 @@ function ultimate_server_config() {
 
 # ===================================== #
 
+# Get Config Link
+
 function save_protocol() {
 	if [[ -e "/usr/local/etc/xray" ]]; then
 		echo "${CONFIG_PROTO}" > /usr/local/etc/xray/proto.txt
 	fi
+}
+
+function get_ultimate_server_config_link_gen() {
 }
 
 function get_config_link() {
@@ -1132,7 +1137,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "========== Settings =========="
 	echo -e "${Green}15. Change vps DNS to Cloudflare${Color_Off}"
 	echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
-	echo -e "${Cyan}17. Get Configuration Link${Color_Off}"
+	echo -e "${Cyan}17. Get Configuration Link${Red}(NOT WORKING)${Color_Off}"
 	echo -e "${Red}18. Uninstall Xray${Color_Off}"
 	echo -e "${Yellow}19. Exit${Color_Off}\n"
 
