@@ -1060,9 +1060,6 @@ function save_protocol() {
 	fi
 }
 
-function get_ultimate_server_config_link_gen() {
-}
-
 function get_config_link() {
 	if [[ -e "/usr/local/etc/xray/proto.txt" ]]; then
 		CURRENT_CONFIG=$(cat /usr/local/etc/xray/proto.txt)
