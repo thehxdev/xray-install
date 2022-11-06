@@ -1134,7 +1134,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "========== Settings =========="
 	echo -e "${Green}15. Change vps DNS to Cloudflare${Color_Off}"
 	echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
-	echo -e "${Cyan}17. Get Configuration Link${Red}(NOT WORKING)${Color_Off}"
+	echo -e "${Cyan}17. Get Configuration Link ${Red}(NOT WORKING)${Color_Off}"
 	echo -e "${Red}18. Uninstall Xray${Color_Off}"
 	echo -e "${Yellow}19. Exit${Color_Off}\n"
 
