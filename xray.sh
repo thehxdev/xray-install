@@ -671,6 +671,8 @@ function vless_ws_tls() {
 	modify_tls
 	restart_xray
 	vless_ws_tls_link_gen
+	CONFIG_PROTO="VlessWsTls"
+	save_protocol
 }
 
 # VLESS + TCP + TLS
@@ -703,6 +705,8 @@ function vless_tcp_tls() {
 	modify_tls
 	restart_xray
 	vless_tcp_tls_link_gen
+	CONFIG_PROTO="VlessTcpTls"
+	save_protocol
 }
 
 
@@ -735,6 +739,8 @@ function vmess_ws() {
 	modify_ws
 	restart_xray
 	vmess_ws_link_gen
+	CONFIG_PROTO="VmessWs"
+	save_protocol
 }
 
 
@@ -768,6 +774,8 @@ function vmess_ws_tls() {
 	modify_tls
 	restart_xray
 	vmess_ws_tls_link_gen
+	CONFIG_PROTO="VmessWsTls"
+	save_protocol
 }
 
 # ==== VMESS + WS + Nginx ====
@@ -800,6 +808,8 @@ function vmess_ws_nginx() {
 	add_wsPath_to_nginx
 	restart_all
 	vmess_ws_nginx_link_gen
+	CONFIG_PROTO="VmessWsNginx"
+	save_protocol
 }
 
 # ==== VMESS + WS + Nginx + TLS ====
@@ -837,6 +847,8 @@ function vmess_ws_nginx_tls() {
 	modify_ws
 	restart_all
 	vmess_ws_nginx_tls_link_gen
+	CONFIG_PROTO="VmessWsNginxTls"
+	save_protocol
 }
 
 # VMESS + TCP
@@ -865,6 +877,8 @@ function vmess_tcp() {
 	modify_UUID
 	restart_xray
 	vmess_tcp_link_gen
+	CONFIG_PROTO="VmessTcp"
+	save_protocol
 }
 
 
@@ -897,6 +911,8 @@ function vmess_tcp_tls() {
 	modify_tls
 	restart_xray
 	vmess_tcp_tls_link_gen
+	CONFIG_PROTO="VmessTcpTls"
+	save_protocol
 }
 
 # ========== Trojan ========== #
@@ -931,6 +947,8 @@ function trojan_tcp_tls() {
 	modify_tls
 	restart_xray
 	trojan_tcp_tls_link_gen
+	CONFIG_PROTO="TrojanTcpTls"
+	save_protocol
 }
 
 # ==== Torojan + WS + TLS ====
@@ -965,6 +983,8 @@ function trojan_ws_tls() {
 	modify_tls
 	restart_xray
 	trojan_ws_tls_link_gen
+	CONFIG_PROTO="TrojanWsTls"
+	save_protocol
 }
 
 # Ultimate conf
@@ -1026,6 +1046,50 @@ function ultimate_server_config() {
 	modify_PASSWORD_trojan
 	restart_xray
 	ultimate_server_config_link_gen
+	CONFIG_PROTO="ultimate"
+	save_protocol
+}
+
+# ===================================== #
+
+function save_protocol() {
+	if [[ -e "/usr/local/etc/xray" ]]; then
+		echo "${CONFIG_PROTO}" > /usr/local/etc/xray/proto.txt
+	fi
+}
+
+function get_config_link() {
+	if [[ -e "/usr/local/etc/xray/proto.txt" ]]; then
+		CURRENT_CONFIG=$(cat /usr/local/etc/xray/proto.txt)
+		print_ok "proto.txt file found!"
+	else
+		print_error "proto.txt file not found!"
+		exit 1
+	fi
+
+	if [[ ${CURRENT_CONFIG} == "ultimate" ]]; then
+		ultimate_server_config_link_gen
+	elif [[ ${CURRENT_CONFIG} == "VlessWsTls" ]]; then
+		vless_ws_tls_link_gen
+	elif [[ ${CURRENT_CONFIG} == "VlessTcpTls" ]]; then
+		vless_tcp_tls_link_gen
+	elif [[ ${CURRENT_CONFIG} == "VmessWs" ]]; then
+		vmess_ws_link_gen
+	elif [[ ${CURRENT_CONFIG} == "VmessWsTls" ]]; then
+		vmess_ws_tls_link_gen
+	elif [[ ${CURRENT_CONFIG} == "VmessWsNginx" ]]; then
+		vmess_ws_nginx_link_gen
+	elif [[ ${CURRENT_CONFIG} == "VmessWsNginxTls" ]]; then
+		vmess_ws_nginx_tls_link_gen
+	elif [[ ${CURRENT_CONFIG} == "VmessTcp" ]]; then
+		vmess_tcp_link_gen
+	elif [[ ${CURRENT_CONFIG} == "VmessTcpTls" ]]; then
+		vmess_tcp_tls_link_gen
+	elif [[ ${CURRENT_CONFIG} == "TrojanTcpTls" ]]; then
+		trojan_tcp_tls_link_gen
+	elif [[ ${CURRENT_CONFIG} == "TrojanWsTls" ]]; then
+		trojan_ws_tls_link_gen
+	fi
 }
 
 # ===================================== #
@@ -1068,8 +1132,9 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "========== Settings =========="
 	echo -e "${Green}15. Change vps DNS to Cloudflare${Color_Off}"
 	echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
-	echo -e "${Red}17. Uninstall Xray${Color_Off}"
-	echo -e "${Yellow}18. Exit${Color_Off}\n"
+	echo -e "${Cyan}17. Get Configuration Link${Color_Off}"
+	echo -e "${Red}18. Uninstall Xray${Color_Off}"
+	echo -e "${Yellow}19. Exit${Color_Off}\n"
 
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
@@ -1122,9 +1187,12 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		bbr_boost
 		;;
 	17)
-		xray_uninstall
+		get_config_link
 		;;
 	18)
+		xray_uninstall
+		;;
+	19)
 		exit
 		;;
 	*)
