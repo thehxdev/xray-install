@@ -140,19 +140,22 @@ function delete_user() {
 }
 
 function first_run() {
+	echo -e "checking..."
 	if [[ ! -e "${config_path}" ]]; then
 		print_error "can't find xray config. Seems like you don't installed xray"
 		exit 1
+	else
+		print_ok "xray is installed"
 	fi
 
-	if [[ -e "${config_path}" ]]; then
-		if ! grep -q -E -o "[1-9]{1,3}@"; then
-			cp ${config_path} ${xray_conf_dir}/config.json.bak1
-			judge "make backup file from config.json"
-			cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",0,"email"];"1@admin")' >${xray_conf_dir}/config_tmp.json
-			judge "initialize first user"
-			xray_tmp_config_file_check_and_use
-		fi
+	if grep -E -o "[1-9]{1,3}@" ${config_path} ; then
+		print_ok "admin user found"
+	else
+		cp ${config_path} ${xray_conf_dir}/config.json.bak1
+		judge "make backup file from config.json"
+		cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",0,"email"];"1@admin")' >${xray_conf_dir}/config_tmp.json
+		judge "initialize first user"
+		xray_tmp_config_file_check_and_use
 	fi
 
 	if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
@@ -163,12 +166,12 @@ function first_run() {
 		touch ${users_number_in_config_file}
 		judge "create user number file"
 		echo -e "1" > ${users_number_in_config_file}
+	else
+		print_ok "rquired files exist"
 	fi
 }
 
 clear
-
-first_run
 
 echo -e "${Green}1) get users info${Color_Off}"
 echo -e "${Green}2) add new user${Color_Off}"
@@ -180,16 +183,19 @@ read -rp "Enter menu Number: " menu_number
 case $menu_number in
 1)
 	echo -e ""
+	first_run
 	get_user_info
 	systemctl restart xray
 	;;
 2)
 	echo -e ""
+	first_run
 	add_new_user
 	systemctl restart xray
 	;;
 3)
 	echo -e ""
+	first_run
 	delete_user
 	systemctl restart xray
 	;;
