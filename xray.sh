@@ -1397,9 +1397,10 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "========== Settings =========="
 	echo -e "${Green}15. Change vps DNS to Cloudflare${Color_Off}"
 	echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
-	echo -e "${Cyan}17. Get Configuration Link${Color_Off}"
-	echo -e "${Red}18. Uninstall Xray${Color_Off}"
-	echo -e "${Yellow}19. Exit${Color_Off}\n"
+	echo -e "${Cyan}17. Get Users Configuration Link${Color_Off}"
+	echo -e "${Blue}18. User Management System${Color_Off}"
+	echo -e "${Red}19. Uninstall Xray${Color_Off}"
+	echo -e "${Yellow}20. Exit${Color_Off}\n"
 
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
@@ -1473,9 +1474,15 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		#exit 0
 		;;
 	18)
-		xray_uninstall
+		if ! command -v jq; then
+			apt update && apt install jq
+		fi
+		bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
 		;;
 	19)
+		xray_uninstall
+		;;
+	20)
 		exit
 		;;
 	*)
