@@ -2,8 +2,14 @@
 
 Xray installation and configuraion script for **`Ubuntu`** and **`Debian`**.
 
+## Install
 ```bash
 bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
+```
+
+## User Management
+```bash
+bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
 ```
 
 ## Supported protocols
