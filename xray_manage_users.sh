@@ -13,7 +13,7 @@ Cyan='\033[0;36m'
 
 
 # Variables
-xray_path="/usr/local/etc/xray"
+xray_conf_dir="/usr/local/etc/xray"
 config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
 users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
@@ -71,27 +71,27 @@ function user_counter() {
 
 function xray_tmp_config_file_check_and_use() {
 	if [[ -s ${config_path} ]]; then
-		mv -f ${xray_path}/config_tmp.json ${config_path}
+		mv -f ${xray_conf_dir}/config_tmp.json ${config_path}
 	else
 		print_error "can't modify xray config file!"
 		exit 1
 	fi
-	touch ${xray_path}/config_tmp.json
+	touch ${xray_conf_dir}/config_tmp.json
 }
 
 function add_new_user() {
 	user_counter
-	cp ${config_path} ${xray_path}/config.json.bak
+	cp ${config_path} ${xray_conf_dir}/config.json.bak
 
 	[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
 	last_user_num=$(wc -l ${users_number_in_config_file} | grep -Eo "[1-9]{1,3}" | xargs -I INPUT sed -n "INPUTp" ${users_number_in_config_file})
 	new_user_num=$(($last_user_num + 1))
 
-	cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"id"];"'${UUID}'")' >${xray_path}/config_tmp.json
+	cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
 	xray_tmp_config_file_check_and_use
 
 	read -p "Enter new user name: " new_user_name
-	cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"email"];"'${new_user_num}@${new_user_name}'")' >${xray_path}/config_tmp.json
+	cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"email"];"'${new_user_num}@${new_user_name}'")' >${xray_conf_dir}/config_tmp.json
 	xray_tmp_config_file_check_and_use
 
 	new_users_count=$(($users_count + 1))
@@ -122,7 +122,7 @@ function get_user_info() {
 
 function delete_user() {
 	user_counter
-	cp ${config_path} ${xray_path}/config.json.bak
+	cp ${config_path} ${xray_conf_dir}/config.json.bak
 	echo -e ""
 
 	read -rp "Enter user number: " user_number
@@ -131,7 +131,7 @@ function delete_user() {
 	echo "removed user code: ${removed_user_number}"
 	sed -i "s/${removed_user_number}//g" ${users_number_in_config_file}
 
-	cat ${config_path} | jq 'del(.inbounds[0].settings.clients['${user_number}'])'>${xray_path}/config_tmp.json
+	cat ${config_path} | jq 'del(.inbounds[0].settings.clients['${user_number}'])'>${xray_conf_dir}/config_tmp.json
 	xray_tmp_config_file_check_and_use
 
 	new_users_count=$(($users_count - 1))
@@ -139,17 +139,36 @@ function delete_user() {
 
 }
 
-if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
-	print_error "users_count.txt not found!"
-	touch ${users_count_file}
-	judge "create user count file"
-	echo -e "1" > ${users_count_file}
-	touch ${users_number_in_config_file}
-	judge "create user number file"
-	echo -e "1" > ${users_number_in_config_file}
-fi
+function first_run() {
+	if [[ ! -e "${config_path}" ]]; then
+		print_error "can't find xray config. Seems like you don't installed xray"
+		exit 1
+	fi
+
+	if [[ -e "${config_path}" ]]; then
+		if ! grep "email" ${config_path} && ! grep -E "[1-9]{1,3}@."; then
+			cp ${config_path} ${xray_conf_dir}/config.json.bak1
+			judge "make backup file from config.json"
+			cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",0,"email"];"1@admin")' >${xray_conf_dir}/config_tmp.json
+			judge "initialize first user"
+			xray_tmp_config_file_check_and_use
+		fi
+	fi
+
+	if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
+		print_error "users_count.txt not found!"
+		touch ${users_count_file}
+		judge "create user count file"
+		echo -e "1" > ${users_count_file}
+		touch ${users_number_in_config_file}
+		judge "create user number file"
+		echo -e "1" > ${users_number_in_config_file}
+	fi
+}
 
 clear
+
+first_run
 
 echo -e "${Green}1) get users info${Color_Off}"
 echo -e "${Green}2) add new user${Color_Off}"

@@ -4,11 +4,15 @@ Xray installation and configuraion script for **`Ubuntu`** and **`Debian`**.
 
 ## Install
 ```bash
+sudo apt install curl
+
 bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 ```
 
 ## User Management
 ```bash
+sudo apt install jq curl
+
 bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
 ```
 
