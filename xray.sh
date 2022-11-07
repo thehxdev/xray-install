@@ -196,6 +196,7 @@ function cloudflare_dns() {
 
 function domain_check() {
 	read -rp "Please enter your domain name information (example: www.google.com):" domain
+	echo -e "${domain}" >/usr/local/domain.txt
 	#domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
 	domain_ip=$(ping -c 1 ${domain} | grep -m 1 -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}')
 	print_ok "Getting domain IP address information, please be wait..."
@@ -649,7 +650,9 @@ function vless_ws_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$domain&security=tls&type=ws&path=$WS_PATH#$config_name")
+	WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$domain&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
 
 	qrencode -t ansiutf8 -l L vless://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vless://$server_link${Color_Off}\n"
@@ -720,7 +723,9 @@ function vmess_ws_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+	WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -753,7 +758,9 @@ function vmess_ws_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+	WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -785,7 +792,9 @@ function vmess_ws_tls() {
 function vmess_ws_nginx_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"80\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+	WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"80\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -820,7 +829,10 @@ function vmess_ws_nginx() {
 function vmess_ws_nginx_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WS_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+	WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -859,6 +871,9 @@ function vmess_tcp_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	#WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	#CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
 	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
@@ -890,7 +905,10 @@ function vmess_tcp_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+	#WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
+	server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
 	qrencode -t ansiutf8 -l L vmess://${server_link}
 	echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -926,7 +944,11 @@ function trojan_tcp_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	#UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$domain&security=tls&type=tcp#$config_name")
+	#WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
+	PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
+	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=tcp#$config_name")
 
 	qrencode -t ansiutf8 -l L trojan://${server_link}
 	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
@@ -960,7 +982,11 @@ function trojan_ws_tls_link_gen() {
 	read -rp "Choose config name: " config_name
 	#UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:443?sni=$domain&security=tls&type=ws&path=$WS_PATH#$config_name")
+	WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
+	PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
+	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:443?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
 
 	qrencode -t ansiutf8 -l L trojan://${server_link}
 	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
@@ -1208,9 +1234,9 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		bbr_boost
 		;;
 	17)
-		#get_config_link
-		print_error "This Future Is NOT Ready Yet."
-		exit 0
+		get_config_link
+		#print_error "This Future Is NOT Ready Yet."
+		#exit 0
 		;;
 	18)
 		xray_uninstall
