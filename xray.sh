@@ -21,7 +21,7 @@ website_dir="/var/www/html"
 #xray_access_log="/var/log/xray/access.log"
 #xray_error_log="/var/log/xray/error.log"
 #cert_dir="/root/.ssl"
-domain_tmp_dir="/usr/local/etc/xray"
+#domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
@@ -420,11 +420,11 @@ function xray_install() {
 	judge "Xray Installation"
 
 	# Import link for Xray generation
-	echo $domain >$domain_tmp_dir/domain
-	judge "Domain name record"
+	#echo $domain >/usr/local/domain.txt
+	#judge "Save Domain"
 	groupadd nobody
 	gpasswd -a nobody nobody
-	judge "add nobody group"
+	judge "add nobody user to nobody group"
 }
 
 function modify_port() {
@@ -1306,7 +1306,7 @@ function check_domain_file() {
 	if [[ -e "/usr/local/domain.txt" ]]; then
 		print_ok "domain file found!"
 	else
-		print_error "domain.txt file not found!"
+		echo -e "${Yellow}domain.txt file not found!${Color_Off}"
 		read -rp "Enter Your domain: " user_domain
 		echo -e "${user_domain}" > /usr/local/domain.txt
 		judge "add user domain to domain.txt"
