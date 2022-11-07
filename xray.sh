@@ -12,8 +12,9 @@ Cyan='\033[0;36m'
 #White='\033[0;37m' 
 
 # Variables 
-#github_branch="main"
+github_branch="main"
 xray_conf_dir="/usr/local/etc/xray"
+config_file="${xray_conf_dir}/config.json"
 website_dir="/var/www/html" 
 #xray_access_log="/var/log/xray/access.log"
 #xray_error_log="/var/log/xray/error.log"
@@ -22,7 +23,7 @@ domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
-go_version="1.19.2"
+go_version="1.19.3"
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
