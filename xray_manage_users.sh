@@ -146,7 +146,7 @@ function first_run() {
 	fi
 
 	if [[ -e "${config_path}" ]]; then
-		if ! grep -q "email" ${config_path} && ! grep -q -E "[1-9]{1,3}@."; then
+		if ! grep -q -E -o "[1-9]{1,3}@"; then
 			cp ${config_path} ${xray_conf_dir}/config.json.bak1
 			judge "make backup file from config.json"
 			cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",0,"email"];"1@admin")' >${xray_conf_dir}/config_tmp.json
