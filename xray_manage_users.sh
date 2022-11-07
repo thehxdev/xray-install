@@ -54,11 +54,10 @@ function user_counter() {
 		judge "create new user_number file"
 	fi
 
-	echo -e "Current Users Count = ${users_count}"
-	echo -e "Old Users:"
-
 	cat ${config_path} | grep "email" | grep -Eo "[1-9]{1,3}" | xargs -I INPUT echo INPUT >> ${users_number_in_config_file}
 	judge "write users in users_number file"
+	echo -e "\nCurrent Users Count = ${users_count}"
+	echo -e "Old Users:"
 	for ((i = 0; i < ${users_count}; i++)); do
 		config_i=$(($i + 1))
 		current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
@@ -83,12 +82,21 @@ function add_new_user() {
 	user_counter
 	cp ${config_path} ${xray_conf_dir}/config.json.bak
 
-	[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
 	last_user_num=$(wc -l ${users_number_in_config_file} | grep -Eo "[1-9]{1,3}" | xargs -I INPUT sed -n "INPUTp" ${users_number_in_config_file})
 	new_user_num=$(($last_user_num + 1))
 
-	cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
-	xray_tmp_config_file_check_and_use
+	if grep "vmess" ${config_path} || grep "vless" ${config_path}; then
+		[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
+		cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
+		xray_tmp_config_file_check_and_use
+	elif grep "trojan" ${config_path}; then
+		[ -z "$PASSWORD" ] && PASSWORD=$(head -n 10 /dev/urandom | md5sum | head -c 18)
+		cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
+		xray_tmp_config_file_check_and_use
+	else
+		print_error "Your current protocol is not supported"
+		exit 1
+	fi
 
 	read -p "Enter new user name: " new_user_name
 	cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"email"];"'${new_user_num}@${new_user_name}'")' >${xray_conf_dir}/config_tmp.json
@@ -106,12 +114,22 @@ function get_user_info() {
 	case $user_number in 
 	$user_number)
 		user_port=$(cat ${config_path} | jq .inbounds[0].port)
-		user_uuid=$(cat ${config_path} | jq .inbounds[0].settings.clients[$user_number].id | tr -d '"')
+		if grep "id" ${config_path}; then
+			user_uuid=$(cat ${config_path} | jq .inbounds[0].settings.clients[$user_number].id | tr -d '"')
+		elif grep "password" ${config_path}; then
+			user_password=$(cat ${config_path} | jq .inbounds[0].settings.clients[$user_number].id | tr -d '"')
+		fi
 		user_ws_path=$(cat ${config_path} | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
 		echo -e "\n=============================="
 		#echo -e "Port = ${user_port}"
-		echo -e "UUID = ${user_uuid}"
-		#echo -e "WS Path = ${user_ws_path}"
+		if [ -n "$user_uuid" ]; then
+			echo -e "UUID = ${user_uuid}"
+		elif [ -n "$user_password" ]; then
+			echo -e "Password = ${user_password}"
+		fi
+		if [ -n "${user_ws_path}" ]; then
+			echo -e "WS Path = ${user_ws_path}"
+		fi
 		echo -e "=============================="
 		;;
 	*)
@@ -158,12 +176,12 @@ function first_run() {
 		xray_tmp_config_file_check_and_use
 	fi
 
-	if grep -E -o "trojan" ${config_path}; then
-		print_error "Trojan is single user"
-		exit 1
-	else
-		print_ok "server config is not trojan!"
-	fi
+	#if grep -E -o "trojan" ${config_path}; then
+	#	print_error "Trojan is single user"
+	#	exit 1
+	#else
+	#	print_ok "server config is not trojan!"
+	#fi
 
 	if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
 		print_error "users_count.txt not found!"
