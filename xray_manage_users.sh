@@ -21,7 +21,7 @@ users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
 OK="${Green}[OK]"
 ERROR="${Red}[ERROR]"
 
-SLEEP="sleep 1"
+SLEEP="sleep 0.5"
 
 #print OK
 function print_ok() {
