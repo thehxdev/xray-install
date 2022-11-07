@@ -14,9 +14,9 @@ Cyan='\033[0;36m'
 # Variables 
 github_branch="main"
 xray_conf_dir="/usr/local/etc/xray"
-config_file="${xray_conf_dir}/config.json"
-users_count_file="${xray_conf_dir}/users_count.txt"
-users_number_in_config_file="${xray_conf_dir}/users_number_in_config_file.txt"
+config_path="/usr/local/etc/xray/config.json"
+users_count_file="/usr/local/etc/xray/users_count.txt"
+users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
 website_dir="/var/www/html" 
 #xray_access_log="/var/log/xray/access.log"
 #xray_error_log="/var/log/xray/error.log"
@@ -1116,7 +1116,7 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 '
 
 	echo -e "==========  ULTIMATE  =========="
-	echo -e "${Blue}1. Ultimate Configuration (All Protocols + XTLS/TLS)${Color_Off}"
+	echo -e "${Blue}1. Ultimate Configuration (All Protocols + XTLS/TLS) ${Yellow}(Single User)${Color_Off}"
 	echo -e "==========  VLESS  =========="
 	echo -e "${Green}2. VLESS + WS + TLS${Color_Off}"
 	echo -e "${Green}3. VLESS + TCP + TLS${Color_Off}"
@@ -1128,8 +1128,8 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "${Green}8. VMESS + TCP ${Red}(NOT Recommended - Low Security)${Color_Off}"
 	echo -e "${Green}9. VMESS + TCP + TLS${Color_Off}"
 	echo -e "==========  TROJAN  =========="
-	echo -e "${Green}10. Trojan + TCP + TLS${Color_Off}"
-	echo -e "${Green}11. Trojan + WS + TLS${Color_Off}"
+	echo -e "${Green}10. Trojan + TCP + TLS ${Yellow}(Single User)${Color_Off}"
+	echo -e "${Green}11. Trojan + WS + TLS ${Yellow}(Single User)${Color_Off}"
 	echo -e "========== Forwarding =========="
 	echo -e "${Green}12. Send Golang and Gost to domestic relay${Color_Off}"
 	echo -e "${Green}13. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
@@ -1148,27 +1148,43 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		;;
 	2)
 		vless_ws_tls
+		echo -e "1" > ${users_count_file}
+		echo -e "1" > ${users_number_in_config_file}
 		;;
 	3)
 		vless_tcp_tls
+		echo -e "1" > ${users_count_file}
+		echo -e "1" > ${users_number_in_config_file}
 		;;
 	4)
 		vmess_ws
+		echo -e "1" > ${users_count_file}
+		echo -e "1" > ${users_number_in_config_file}
 		;;
 	5)
 		vmess_ws_tls
+		echo -e "1" > ${users_count_file}
+		echo -e "1" > ${users_number_in_config_file}
 		;;
 	6)
 		vmess_ws_nginx
+		echo -e "1" > ${users_count_file}
+		echo -e "1" > ${users_number_in_config_file}
 		;;
 	7)
 		vmess_ws_nginx_tls
+		echo -e "1" > ${users_count_file}
+		echo -e "1" > ${users_number_in_config_file}
 		;;
 	8)
 		vmess_tcp
+		echo -e "1" > ${users_count_file}
+		echo -e "1" > ${users_number_in_config_file}
 		;;
 	9)
 		vmess_tcp_tls
+		echo -e "1" > ${users_count_file}
+		echo -e "1" > ${users_number_in_config_file}
 		;;
 	10)
 		trojan_tcp_tls
