@@ -98,19 +98,8 @@ echo -e "3) delete user\n"
 read -rp "Enter menu Number: " menu_number
 
 case $menu_number in
-1)
-	echo -e ""
-	get_user_info
-	;;
-2)
-	echo -e ""
-	add_new_user
-	;;
-3)
-	echo -e ""
-	delete_user
-	;;
 *)
-	exit 1
+	echo -e "Script is not ready yet"
+	exit 0
 	;;
 esac
