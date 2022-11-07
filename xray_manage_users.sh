@@ -158,6 +158,13 @@ function first_run() {
 		xray_tmp_config_file_check_and_use
 	fi
 
+	if grep -E -o "trojan" ${config_path}; then
+		print_error "Trojan is single user"
+		exit 1
+	else
+		print_ok "server config is not trojan!"
+	fi
+
 	if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
 		print_error "users_count.txt not found!"
 		touch ${users_count_file}
