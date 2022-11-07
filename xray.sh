@@ -1089,6 +1089,17 @@ function save_protocol() {
 	fi
 }
 
+function check_domain_file() {
+	if [[ -e "/usr/local/domain.txt" ]]; then
+		print_ok "domain file found!"
+	else
+		print_error "domain.txt file not found!"
+		read -rp "Enter Your domain: " user_domain
+		echo -e "${user_domain}" > /usr/local/domain.txt
+		judge "add user domain to domain.txt"
+	fi
+}
+
 function get_config_link() {
 	if [[ -e "/usr/local/etc/xray/proto.txt" ]]; then
 		CURRENT_CONFIG=$(cat /usr/local/etc/xray/proto.txt)
@@ -1099,26 +1110,34 @@ function get_config_link() {
 	fi
 
 	if [[ ${CURRENT_CONFIG} == "ultimate" ]]; then
+		check_domain_file
 		ultimate_server_config_link_gen
 	elif [[ ${CURRENT_CONFIG} == "VlessWsTls" ]]; then
+		check_domain_file
 		vless_ws_tls_link_gen
 	elif [[ ${CURRENT_CONFIG} == "VlessTcpTls" ]]; then
+		check_domain_file
 		vless_tcp_tls_link_gen
 	elif [[ ${CURRENT_CONFIG} == "VmessWs" ]]; then
 		vmess_ws_link_gen
 	elif [[ ${CURRENT_CONFIG} == "VmessWsTls" ]]; then
+		check_domain_file
 		vmess_ws_tls_link_gen
 	elif [[ ${CURRENT_CONFIG} == "VmessWsNginx" ]]; then
 		vmess_ws_nginx_link_gen
 	elif [[ ${CURRENT_CONFIG} == "VmessWsNginxTls" ]]; then
+		check_domain_file
 		vmess_ws_nginx_tls_link_gen
 	elif [[ ${CURRENT_CONFIG} == "VmessTcp" ]]; then
 		vmess_tcp_link_gen
 	elif [[ ${CURRENT_CONFIG} == "VmessTcpTls" ]]; then
+		check_domain_file
 		vmess_tcp_tls_link_gen
 	elif [[ ${CURRENT_CONFIG} == "TrojanTcpTls" ]]; then
+		check_domain_file
 		trojan_tcp_tls_link_gen
 	elif [[ ${CURRENT_CONFIG} == "TrojanWsTls" ]]; then
+		check_domain_file
 		trojan_ws_tls_link_gen
 	fi
 }
