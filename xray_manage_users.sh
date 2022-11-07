@@ -63,7 +63,7 @@ function user_counter() {
 		current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
 		name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
 		current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
-		echo -e "\t${i}) $name \t(e-n: ${current_user_number})"
+		echo -e "  ${i}) $name \t(e-n: ${current_user_number})"
 	done
 	echo -e ""
 }
