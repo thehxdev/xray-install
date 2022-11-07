@@ -173,7 +173,7 @@ first_run
 echo -e "${Green}1) get users info${Color_Off}"
 echo -e "${Green}2) add new user${Color_Off}"
 echo -e "${Red}3) delete user${Color_Off}"
-echo -e "${Cyan}exit\n${Color_Off}"
+echo -e "${Cyan}4)exit\n${Color_Off}"
 
 read -rp "Enter menu Number: " menu_number
 
