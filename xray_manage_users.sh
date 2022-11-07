@@ -85,11 +85,11 @@ function add_new_user() {
 	last_user_num=$(wc -l ${users_number_in_config_file} | grep -Eo "[1-9]{1,3}" | xargs -I INPUT sed -n "INPUTp" ${users_number_in_config_file})
 	new_user_num=$(($last_user_num + 1))
 
-	if grep "vmess" ${config_path} || grep "vless" ${config_path}; then
+	if grep -q "vmess" ${config_path} || grep -q "vless" ${config_path}; then
 		[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
 		cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
 		xray_tmp_config_file_check_and_use
-	elif grep "trojan" ${config_path}; then
+	elif grep -q "trojan" ${config_path}; then
 		[ -z "$PASSWORD" ] && PASSWORD=$(head -n 10 /dev/urandom | md5sum | head -c 18)
 		cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
 		xray_tmp_config_file_check_and_use
@@ -114,9 +114,9 @@ function get_user_info() {
 	case $user_number in 
 	$user_number)
 		user_port=$(cat ${config_path} | jq .inbounds[0].port)
-		if grep "id" ${config_path}; then
+		if grep -q "id" ${config_path}; then
 			user_uuid=$(cat ${config_path} | jq .inbounds[0].settings.clients[$user_number].id | tr -d '"')
-		elif grep "password" ${config_path}; then
+		elif grep -q "password" ${config_path}; then
 			user_password=$(cat ${config_path} | jq .inbounds[0].settings.clients[$user_number].id | tr -d '"')
 		fi
 		user_ws_path=$(cat ${config_path} | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
@@ -166,7 +166,7 @@ function first_run() {
 		print_ok "xray is installed"
 	fi
 
-	if grep -E -o "[1-9]{1,3}@" ${config_path} ; then
+	if grep -q -E -o "[1-9]{1,3}@" ${config_path} ; then
 		print_ok "admin user found"
 	else
 		cp ${config_path} ${xray_conf_dir}/config.json.bak1
