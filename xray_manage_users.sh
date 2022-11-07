@@ -172,7 +172,8 @@ first_run
 
 echo -e "${Green}1) get users info${Color_Off}"
 echo -e "${Green}2) add new user${Color_Off}"
-echo -e "${Red}3) delete user\n${Color_Off}"
+echo -e "${Red}3) delete user${Color_Off}"
+echo -e "${Cyan}exit\n${Color_Off}"
 
 read -rp "Enter menu Number: " menu_number
 
@@ -192,7 +193,11 @@ case $menu_number in
 	delete_user
 	systemctl restart xray
 	;;
+4)
+	exit 0
+	;;
 *)
+	print_error "Invalid Option"
 	exit 1
 	;;
 esac
