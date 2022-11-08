@@ -17,6 +17,7 @@ xray_conf_dir="/usr/local/etc/xray"
 config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
 users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
+proto_file="/usr/local/etc/xray/proto.txt"
 website_dir="/var/www/html" 
 #xray_access_log="/var/log/xray/access.log"
 #xray_error_log="/var/log/xray/error.log"
@@ -1298,7 +1299,8 @@ function ultimate_server_config() {
 
 function save_protocol() {
 	if [[ -e "/usr/local/etc/xray" ]]; then
-		echo "${CONFIG_PROTO}" > /usr/local/etc/xray/proto.txt
+		#echo "${CONFIG_PROTO}" > /usr/local/etc/xray/proto.txt
+		echo "${CONFIG_PROTO}" > ${proto_file}
 	fi
 }
 
@@ -1314,12 +1316,12 @@ function check_domain_file() {
 }
 
 function get_config_link() {
-	if [[ -e "/usr/local/etc/xray/proto.txt" ]]; then
-		CURRENT_CONFIG=$(cat /usr/local/etc/xray/proto.txt)
+	if [[ -e "${proto_file}" ]]; then
+		CURRENT_CONFIG=$(cat ${proto_file})
 		print_ok "proto.txt file found!"
 	else
-		print_error "proto.txt file not found!"
-		exit 1
+		get_current_protocol
+		CURRENT_CONFIG=$(cat ${proto_file})
 	fi
 
 	if [[ ${CURRENT_CONFIG} == "ultimate" ]]; then
@@ -1356,6 +1358,65 @@ function get_config_link() {
 		users_trojan_ws_tls_link_gen
 	fi
 }
+
+# ===================================== #
+
+# Define current protocol
+function get_current_protocol() {
+	if [ ! -e "${proto_file}" ]; then
+		if grep -q "xtls" ${config_path}; then
+			echo -e "ultimate" > ${proto_file}
+			judge "add ultimate to proto.txt"
+
+		elif grep -q "vless" ${config_path} && grep -q "wsSettings" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+			echo -e "VlessWsTls" > ${proto_file}
+			judge "add VlessWsTls to proto.txt"
+
+		elif grep -q "vless" ${config_path} && grep -q "tcp" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+			echo -e "VlessTcpTls" > ${proto_file}
+			judge "add VlessTcpTls to proto.txt"
+
+		elif grep -q "vmess" ${config_path} && grep -q "wsSettings" ${config_path} && ! grep -q "tlsSettings" ${config_path}; then
+			echo -e "VmessWs" > ${proto_file}
+			judge "add VmessWs to proto.txt"
+
+		elif grep -q "vmess" ${config_path} && grep -q "wsSettings" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+			echo -e "VmessWsTls" > ${proto_file}
+			judge "add VmessWsTls to proto.txt"
+
+		elif grep -q "vmess" ${config_path} && grep -q "127.0.0.1" ${config_path} && ! grep -q "ssl_certificate" ${nginx_conf}; then
+			echo -e "VmessWsNginx" > ${proto_file}
+			judge "add VmessWsNginx to proto.txt"
+			
+		elif grep -q "vmess" ${config_path} && grep -q "127.0.0.1" ${config_path} && grep -q "ssl_certificate" ${nginx_conf}; then
+			echo -e "VmessWsNginxTls" > ${proto_file}
+			judge "add VmessWsNginxTls to proto.txt"
+			
+		elif grep -q "vmess" ${config_path} && grep -q "tcp" ${config_path} && ! grep -q "tlsSettings" ${config_path}; then
+			echo -e "VmessTcp" > ${proto_file}
+			judge "add VmessTcp to proto.txt"
+			
+		elif grep -q "vmess" ${config_path} && grep -q "tcp" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+			echo -e "VmessTcpTls" > ${proto_file}
+			judge "add VmessTcpTls to proto.txt"
+			
+		elif grep -q "trojan" ${config_path} && grep -q "tcp" ${config_path}; then
+			echo -q "TrojanTcpTls" > ${proto_file}
+			judge "add TrojanTcpTls to proto.txt"
+			
+		elif grep -q "trojan" ${config_path} && grep -q "wsSettings"; then
+			echo -q "TrojanWsTls" > ${proto_file}
+			judge "add TrojanWsTls to proto.txt"
+			
+		else
+			print_error "Can't detect your configureation"
+			exit 1
+		fi
+	else
+		print_ok "proto.txt file exist"
+	fi
+}
+
 
 # ===================================== #
 
