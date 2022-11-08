@@ -18,6 +18,7 @@ config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
 users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
 proto_file="/usr/local/etc/xray/proto.txt"
+backup_dir="/root/xray_backup"
 website_dir="/var/www/html" 
 #xray_access_log="/var/log/xray/access.log"
 #xray_error_log="/var/log/xray/error.log"
@@ -33,6 +34,7 @@ PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
 
 OK="${Green}[OK]"
 ERROR="${Red}[ERROR]"
+INFO="${Yellow}[INFO]"
 
 SLEEP="sleep 1"
 
@@ -44,6 +46,10 @@ function print_ok() {
 #print ERROR
 function print_error() {
 	echo -e "${ERROR} $1 ${Color_Off}"
+}
+
+function print_info() {
+	echo -e "${INFO} $1 ${Color_Off}"
 }
 
 function installit() {
@@ -1417,6 +1423,80 @@ function get_current_protocol() {
 	fi
 }
 
+# ===================================== #
+
+function make_backup() {
+	if [ ! -e ${backup_dir} ]; then
+		mkdir ${backup_dir} >/dev/null 2>&1
+		judge "make bakup directory"
+	else
+		print_ok "backup directory exist!"
+		mkdir /root/old_xray_backups/ >/dev/null 2>&1
+		mv ${backup_dir} /root/old_xray_backups/
+		judge "move existing backup to /root/old_xray_backups"
+		if [ -e "/root/xray_backup.tar.gz" ]; then
+		mv /root/xray_backup.tar.gz /root/old_xray_backups/
+		judge "move existing backup.tar.gz to /root/old_xray_backups"
+		fi
+	fi
+
+	if [ -e ${xray_conf_dir} ]; then
+		mkdir ${backup_dir}/xray >/dev/null 2>&1
+		cp -r ${xray_conf_dir}/* ${backup_dir}/xray/
+		judge "copy xray configurations"
+		if [ -e "/usr/local/domain.txt" ]; then
+			cp /usr/local/domain.txt ${backup_dir}
+			judge "copy domain.txt file"
+		fi
+	fi
+
+	if [ -e "/etc/nginx" ]; then
+		cp -r /etc/nginx/ ${backup_dir}
+		judge "copy nginx configurations"
+	else
+		print_info "nginx configs not found or not installed. No Problem!"
+	fi
+
+	if ! command -v gzip; then
+		installit gzip tar
+	else
+		print_ok "gzip installed"
+	fi
+
+	tar -czf /root/xray_backup.tar.gz ${backup_dir}
+	judge "Compress and put backup files if one .tar.gz file"
+}
+
+function restore_backup() {
+	if [ -e "/root/xray_backup.tar.gz" ]; then
+		tar -xzf /root/xray_backup.tar.gz -C /root/xray_backup
+		judge "extract backup file"
+	else
+		print_error "can't find xray_backup.tar.gz! if you have a backup file put it into /root/ directory and rename it to xray_backup.tar.gz"
+		exit 1
+	fi
+
+	if [ -e "${backup_dir}" ]; then
+		if [ -e "${backup_dir}/nginx" ]; then
+			cp -r ${backup_dir}/nginx /etc/
+			judge "restore nginx config."
+			systemctl restart nginx
+			judge "restart nginx"
+		fi
+		if [ -e "${backup_dir}/xray" ]; then
+			if [ -e "${xray_conf_dir}" ]; then
+				rm -rf ${xray_conf_dir}/*
+				judge "remove old configs"
+				cp -r ${backup_dir}/xray/* ${xray_conf_dir}/
+				judge "restore xray files"
+				systemctl restart xray
+				judge "restart xray"
+			else
+				print_error "${xray_conf_dir} not found"
+			fi
+		fi
+	fi
+}
 
 # ===================================== #
 
