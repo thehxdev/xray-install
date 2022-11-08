@@ -1142,7 +1142,7 @@ function trojan_tcp_tls_link_gen() {
 	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
 }
 
-function trojan_tcp_tls_link_gen() {
+function users_trojan_tcp_tls_link_gen() {
 	user_counter
 	read -rp "Choose User: " user_number
 	read -rp "Choose config name: " config_name
@@ -1196,7 +1196,7 @@ function trojan_ws_tls_link_gen() {
 	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
 }
 
-function trojan_ws_tls_link_gen() {
+function users_trojan_ws_tls_link_gen() {
 	user_counter
 	read -rp "Choose User: " user_number
 	read -rp "Choose config name: " config_name
