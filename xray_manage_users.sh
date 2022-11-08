@@ -98,7 +98,7 @@ function add_new_user() {
 		exit 1
 	fi
 
-	read -p "Enter new user name: " new_user_name
+	read -p "Enter New Username: " new_user_name
 	cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"email"];"'${new_user_num}@${new_user_name}'")' >${xray_conf_dir}/config_tmp.json
 	xray_tmp_config_file_check_and_use
 
