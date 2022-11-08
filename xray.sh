@@ -1481,8 +1481,12 @@ function restore_backup() {
 		if [ -e "${backup_dir}/nginx" ]; then
 			cp -r ${backup_dir}/nginx /etc/
 			judge "restore nginx config."
-			systemctl restart nginx
-			judge "restart nginx"
+			if commnad -v nginx; then
+				systemctl restart nginx
+				judge "restart nginx"
+			else
+				print_info "nginx is not installed"
+			fi
 		fi
 
 		if [ -e "${backup_dir}/xray" ]; then
