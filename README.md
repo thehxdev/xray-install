@@ -3,9 +3,14 @@
 Xray installation and configuraion script for **`Ubuntu`** and **`Debian`** servers.
 
 ## Install
+
+#### Install Dependencies
 ```bash
 apt update && apt install curl
+```
 
+#### Run Script
+```bash
 bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 ```
 
