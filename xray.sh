@@ -677,7 +677,7 @@ function configure_user_management() {
 	#fi
 
 	if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
-		echo -e "${Yellow}[INFO] users_count.txt not found! Creating one..."
+		print_info "users_count.txt not found! Creating one..."
 		touch ${users_count_file}
 		judge "create user count file"
 		echo -e "1" > ${users_count_file}
