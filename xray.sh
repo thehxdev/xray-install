@@ -1489,7 +1489,7 @@ function restore_backup() {
 		if [ -e "${backup_dir}/nginx" ]; then
 			cp -r ${backup_dir}/nginx /etc/
 			judge "restore nginx config."
-			if commnad -v nginx; then
+			if command -v nginx; then
 				systemctl restart nginx
 				judge "restart nginx"
 			else
