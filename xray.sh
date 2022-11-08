@@ -1469,6 +1469,14 @@ function make_backup() {
 }
 
 function restore_backup() {
+	if [ ! -e "/usr/local/bin/xray" ]; then
+		print_info "xray is not installed"
+		print_info "installing xray-core"
+		sleep 1
+		xray_install
+	else
+		print_ok "xray is installed"
+	fi
 	if [ -e "/root/xray_backup.tar.gz" ]; then
 		tar -xzf /root/xray_backup.tar.gz -C /root/xray_backup
 		judge "extract backup file"
