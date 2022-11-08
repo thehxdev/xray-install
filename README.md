@@ -1,6 +1,6 @@
 # xray-install
 
-Xray installation and configuraion script for **`Ubuntu`** and **`Debian`**.
+Xray installation and configuraion script for **`Ubuntu`** and **`Debian`** servers.
 
 ## Install
 ```bash
