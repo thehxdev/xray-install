@@ -117,7 +117,7 @@ function get_user_info() {
 		if grep -q "id" ${config_path}; then
 			user_uuid=$(cat ${config_path} | jq .inbounds[0].settings.clients[$user_number].id | tr -d '"')
 		elif grep -q "password" ${config_path}; then
-			user_password=$(cat ${config_path} | jq .inbounds[0].settings.clients[$user_number].id | tr -d '"')
+			user_password=$(cat ${config_path} | jq .inbounds[0].settings.clients[$user_number].password | tr -d '"')
 		fi
 		user_ws_path=$(cat ${config_path} | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
 		echo -e "\n=============================="
