@@ -1483,6 +1483,7 @@ function restore_backup() {
 			systemctl restart nginx
 			judge "restart nginx"
 		fi
+
 		if [ -e "${backup_dir}/xray" ]; then
 			if [ -e "${xray_conf_dir}" ]; then
 				rm -rf ${xray_conf_dir}/*
@@ -1494,6 +1495,11 @@ function restore_backup() {
 			else
 				print_error "${xray_conf_dir} not found"
 			fi
+		fi
+
+		if [ -e "${backup_dir}/domain.txt" ]; then
+			cp ${backup_dir}/domain.txt /usr/local/domain.txt
+			judge "restore domain.txt"
 		fi
 	fi
 }
@@ -1540,8 +1546,10 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
 	echo -e "${Cyan}17. Get Users Configuration Link${Color_Off}"
 	echo -e "${Blue}18. User Management System${Color_Off}"
-	echo -e "${Red}19. Uninstall Xray${Color_Off}"
-	echo -e "${Yellow}20. Exit${Color_Off}\n"
+	echo -e "${Green}19. Make Backup${Color_Off}"
+	echo -e "${Green}20. Restore existing backup${Color_Off}"
+	echo -e "${Red}21. Uninstall Xray${Color_Off}"
+	echo -e "${Yellow}22. Exit${Color_Off}\n"
 
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
@@ -1621,9 +1629,15 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
 		;;
 	19)
-		xray_uninstall
+		make_backup
 		;;
 	20)
+		restore_backup
+		;;
+	21)
+		xray_uninstall
+		;;
+	22)
 		exit
 		;;
 	*)
