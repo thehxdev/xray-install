@@ -1376,11 +1376,11 @@ function get_current_protocol() {
 			echo -e "VlessTcpTls" > ${proto_file}
 			judge "add VlessTcpTls to proto.txt"
 
-		elif grep -q "vmess" ${config_path} && grep -q "wsSettings" ${config_path} && ! grep -q "tlsSettings" ${config_path}; then
+		elif grep -q "vmess" ${config_path} && grep -q "wsSettings" ${config_path} && ! grep -q "tlsSettings" ${config_path} && ! grep "127.0.0.1" ${config_path}; then
 			echo -e "VmessWs" > ${proto_file}
 			judge "add VmessWs to proto.txt"
 
-		elif grep -q "vmess" ${config_path} && grep -q "wsSettings" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+		elif grep -q "vmess" ${config_path} && grep -q "wsSettings" ${config_path} && grep -q "tlsSettings" ${config_path} && ! grep "127.0.0.1" ${config_path}; then
 			echo -e "VmessWsTls" > ${proto_file}
 			judge "add VmessWsTls to proto.txt"
 
