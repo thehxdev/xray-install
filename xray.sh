@@ -1434,13 +1434,13 @@ function make_backup() {
 		judge "make bakup directory"
 	else
 		print_ok "backup directory exist!"
+		rm -rf /root/old_xray_backups/*
+		judge "make old_xray_backups directory empty"
 		mkdir /root/old_xray_backups/ >/dev/null 2>&1
 		mv ${backup_dir} /root/old_xray_backups/
 		judge "move existing backup to /root/old_xray_backups"
 		mkdir ${backup_dir} >/dev/null 2>&1
 		if [ -e "/root/xray_backup.tar.gz" ]; then
-			rm -rf /root/old_xray_backups/*
-			judge "make old_xray_backups directory empty"
 			mv /root/xray_backup.tar.gz /root/old_xray_backups/
 			judge "move existing backup.tar.gz to /root/old_xray_backups"
 		fi
