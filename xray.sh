@@ -1236,6 +1236,9 @@ function trojan_ws_tls() {
 	save_protocol
 }
 
+# Trojan Tcp XTLS
+# TODO
+
 # Ultimate conf
 function trojan_u_link_gen() {
 	server_link_trojan=$(echo -neE "$PASSWORD@$SERVER_IP:443?sni=$domain&security=tls&type=tcp#ultimate_xray_trojan")
