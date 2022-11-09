@@ -1190,7 +1190,7 @@ function trojan_ws_tls_link_gen() {
 	SERVER_IP=$(curl -s4m8 https://ip.gs)
 	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
 	PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
-	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:443?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
 
 	qrencode -t ansiutf8 -l L trojan://${server_link}
 	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
@@ -1206,7 +1206,7 @@ function users_trojan_ws_tls_link_gen() {
 	SERVER_IP=$(curl -s4m8 https://ip.gs)
 	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
 	PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
-	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:443?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
 
 	qrencode -t ansiutf8 -l L trojan://${server_link}
 	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
