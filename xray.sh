@@ -1396,27 +1396,27 @@ function get_current_protocol() {
 		elif grep -q "vmess" ${config_path} && grep -q "127.0.0.1" ${config_path} && ! grep -q "ssl_certificate" ${nginx_conf}; then
 			echo -e "VmessWsNginx" > ${proto_file}
 			judge "add VmessWsNginx to proto.txt"
-			
+
 		elif grep -q "vmess" ${config_path} && grep -q "127.0.0.1" ${config_path} && grep -q "ssl_certificate" ${nginx_conf}; then
 			echo -e "VmessWsNginxTls" > ${proto_file}
 			judge "add VmessWsNginxTls to proto.txt"
-			
+
 		elif grep -q "vmess" ${config_path} && grep -q "tcp" ${config_path} && ! grep -q "tlsSettings" ${config_path}; then
 			echo -e "VmessTcp" > ${proto_file}
 			judge "add VmessTcp to proto.txt"
-			
+
 		elif grep -q "vmess" ${config_path} && grep -q "tcp" ${config_path} && grep -q "tlsSettings" ${config_path}; then
 			echo -e "VmessTcpTls" > ${proto_file}
 			judge "add VmessTcpTls to proto.txt"
-			
+
 		elif grep -q "trojan" ${config_path} && grep -q "tcp" ${config_path}; then
 			echo -q "TrojanTcpTls" > ${proto_file}
 			judge "add TrojanTcpTls to proto.txt"
-			
+
 		elif grep -q "trojan" ${config_path} && grep -q "wsSettings"; then
 			echo -q "TrojanWsTls" > ${proto_file}
 			judge "add TrojanWsTls to proto.txt"
-			
+
 		else
 			print_error "Can't detect your configureation"
 			exit 1
