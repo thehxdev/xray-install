@@ -11,7 +11,6 @@ Blue='\033[0;34m'
 Cyan='\033[0;36m'  
 #White='\033[0;37m' 
 
-
 # Variables
 xray_conf_dir="/usr/local/etc/xray"
 config_path="/usr/local/etc/xray/config.json"
@@ -20,6 +19,7 @@ users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
 
 OK="${Green}[OK]"
 ERROR="${Red}[ERROR]"
+INFO="${Yellow}[INFO]"
 
 SLEEP="sleep 0.2"
 
