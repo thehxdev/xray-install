@@ -1457,8 +1457,22 @@ function make_backup() {
 	fi
 
 	if [ -e "/etc/nginx" ]; then
-		cp -r /etc/nginx/ ${backup_dir}
-		judge "copy nginx configurations"
+		WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+		WEBSOCKET_PATH_IN_NGINX=$(grep ${WEBSOCKET_PATH} ${nginx_conf})
+		if [[ -n ${WEBSOCKET_PATH} && -n ${WEBSOCKET_PATH_IN_NGINX} ]]; then
+			if [[ ${WEBSOCKET_PATH} == ${WEBSOCKET_PATH_IN_NGINX} ]]; then
+				cp -r /etc/nginx/ ${backup_dir}
+				judge "copy nginx configurations"
+			else
+				print_info "Nginx WebSocket path and Xray WebSocket path are not same as each other."
+				print_info "Probably Nginx is not used for Xray!"
+				print_info "Nginx Backup Skipped!"
+			fi
+		else
+			print_info "Nginx WebSocket path or Xray WebSocket path is NOT defined."
+			print_info "Probably Nginx is not used for Xray!"
+			print_info "Nginx Backup Skipped!"
+		fi
 	else
 		print_info "nginx configs not found or not installed. No Problem!"
 	fi
@@ -1474,10 +1488,9 @@ function make_backup() {
 }
 
 function restore_backup() {
-	if [ ! -e "/usr/local/bin/xray" ]; then
-		print_info "xray is not installed"
-		print_info "installing xray-core"
-		sleep 1
+	if [ ! -e "/usr/local/bin/xray" && ! -e "/usr/local/etc/xray" ]; then
+		print_info "xray is not installed" && sleep 0.5
+		print_info "installing xray-core" && sleep 1
 		xray_install
 	else
 		print_ok "xray is installed"
@@ -1499,6 +1512,9 @@ function restore_backup() {
 				judge "restart nginx"
 			else
 				print_info "nginx is not installed"
+				install_nginx
+				systemctl restart nginx
+				judge "restart nginx after fresh install"
 			fi
 		fi
 
@@ -1524,22 +1540,23 @@ function restore_backup() {
 
 # ===================================== #
 
-function greetings_screen() {
+# Xray Status
+
+function xray_status() {
+	systemd_xray_status=$(systemctl status xray | grep Active | grep -Eo "active|inactive")
+	if [[ ${systemd_xray_status} == "active" ]]; then
+		echo -e "${Green}Active${Color_Off}"
+		exit 0
+	elif [[ ${systemd_xray_status} == "inactive" ]]; then
+		echo -e "${Red}Inactive${Color_Off}"
+		exit 0
+	fi
+}
+
+# ===================================== #
+
+function xray_setup_menu() {
 	clear
-	echo -e '
-$$\   $$\ $$$$$$$\   $$$$$$\ $$\     $$\       $$\   $$\ $$\   $$\ 
-$$ |  $$ |$$ .__$$\ $$  __$$\ $$\   $$  |      $$ |  $$ |$$ |  $$ |
-\$$\ $$  |$$ |  $$ |$$ /  $$ |\$$\ $$  /       $$ |  $$ |\$$\ $$  |
- \$$$$  / $$$$$$$  |$$$$$$$$ | \$$$$  /        $$$$$$$$ | \$$$$  / 
- $$  $$<  $$ .__$$< $$ .__$$ |  \$$  /         $$ .__$$ | $$  $$<  
-$$  /\$$\ $$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$  /\$$\ 
-$$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
-\__|  \__|\__|  \__|\__|  \__|   \__|          \__|  \__|\__|  \__|
-
-=> by thehxdev
-=> https://github.com/thehxdev/
-'
-
 	echo -e "==========  ULTIMATE  =========="
 	echo -e "${Blue}1. Ultimate Configuration (All Protocols + XTLS/TLS) ${Yellow}(Single User)${Color_Off}"
 	echo -e "==========  VLESS  =========="
@@ -1555,20 +1572,8 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 	echo -e "==========  TROJAN  =========="
 	echo -e "${Green}10. Trojan + TCP + TLS${Color_Off}"
 	echo -e "${Green}11. Trojan + WS + TLS${Color_Off}"
-	echo -e "========== Forwarding =========="
-	echo -e "${Green}12. Send Golang and Gost to domestic relay${Color_Off}"
-	echo -e "${Green}13. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-	echo -e "${Green}14. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-	echo -e "========== Settings =========="
-	echo -e "${Green}15. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
-	echo -e "${Cyan}17. Get Users Configuration Link${Color_Off}"
-	echo -e "${Blue}18. User Management System${Color_Off}"
-	echo -e "${Green}19. Make Backup${Color_Off}"
-	echo -e "${Green}20. Restore existing backup${Color_Off}"
-	echo -e "${Red}21. Uninstall Xray${Color_Off}"
-	echo -e "${Yellow}22. Exit${Color_Off}\n"
-
+	echo -e "=============================="
+	echo -e "${Yellow}12. Exit${Color_Off}\n"
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
 	1)
@@ -1621,47 +1626,258 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		trojan_ws_tls
 		;;
 	12)
-		send_go_and_gost
-		;;
-	13)
-		install_gost_and_go_tls
-		;;
-	14)
-		install_gost_and_go_notls
-		;;
-	15)
-		cloudflare_dns
-		;;
-	16)
-		bbr_boost
-		;;
-	17)
-		get_config_link
-		#print_error "This Future Is NOT Ready Yet."
-		#exit 0
-		;;
-	18)
-		if ! command -v jq; then
-			apt update && apt install jq
-		fi
-		bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
-		;;
-	19)
-		make_backup
-		;;
-	20)
-		restore_backup
-		;;
-	21)
-		xray_uninstall
-		;;
-	22)
-		exit
+		exit 0
 		;;
 	*)
 		print_error "Invalid Option. Run script again!"
 		exit 1
 	esac
+}
+
+function forwarding_menu() {
+	clear
+	echo -e "========== Forwarding =========="
+	echo -e "${Green}1. Send Golang and Gost to domestic relay${Color_Off}"
+	echo -e "${Green}2. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}3. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Yellow}4. Exit${Color_Off}\n"
+	read -rp "Enter an Option: " menu_num
+	case $menu_num in
+	1)
+		send_go_and_gost
+		;;
+	2)
+		install_gost_and_go_tls
+		;;
+	3)
+		install_gost_and_go_notls
+		;;
+	4)
+		exit 0
+		;;
+	*)
+		print_error "Invalid Option. Run script again!"
+		exit 1
+	esac
+}
+
+function xray_and_vps_settings() {
+	clear
+	echo -e "========== Settings =========="
+	echo -e "${Green}1. Change vps DNS to Cloudflare${Color_Off}"
+	echo -e "${Green}2. Enable BBR TCP Boost${Color_Off}"
+	echo -e "${Green}3. Get Xray Status${Color_Off}"
+	echo -e "${Yellow}4. Exit${Color_Off}\n"
+	read -rp "Enter an Option: " menu_num
+	case $menu_num in
+	1)
+		cloudflare_dns
+		;;
+	2)
+		bbr_boost
+		;;
+	3)
+		xray_status
+		;;
+	4)
+		exit 0
+		;;
+	*)
+		print_error "Invalid Option. Run script again!"
+		exit 1
+	esac
+}
+
+function user_management_and_backup_menu() {
+	clear
+	echo -e "========== User Management and Backup =========="
+	echo -e "${Cyan}1. Get Users Configuration Link${Color_Off}"
+	echo -e "${Blue}2. User Management System${Color_Off}"
+	echo -e "${Green}3. Make Backup${Color_Off}"
+	echo -e "${Green}4. Restore existing backup${Color_Off}"
+	echo -e "${Yellow}5. Exit${Color_Off}\n"
+	read -rp "Enter an Option: " menu_num
+	case $menu_num in
+	1)
+		get_config_link
+		#print_error "This Future Is NOT Ready Yet."
+		#exit 0
+		;;
+	2)
+		if ! command -v jq; then
+			apt update && apt install jq
+		fi
+		bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
+		;;
+	3)
+		make_backup
+		;;
+	4)
+		restore_backup
+		;;
+	5)
+		exit 0
+		;;
+	*)
+		print_error "Invalid Option. Run script again!"
+		exit 1
+	esac
+}
+
+function greetings_screen() {
+	clear
+	echo -e '
+$$\   $$\ $$$$$$$\   $$$$$$\ $$\     $$\       $$\   $$\ $$\   $$\ 
+$$ |  $$ |$$ .__$$\ $$  __$$\ $$\   $$  |      $$ |  $$ |$$ |  $$ |
+\$$\ $$  |$$ |  $$ |$$ /  $$ |\$$\ $$  /       $$ |  $$ |\$$\ $$  |
+ \$$$$  / $$$$$$$  |$$$$$$$$ | \$$$$  /        $$$$$$$$ | \$$$$  / 
+ $$  $$<  $$ .__$$< $$ .__$$ |  \$$  /         $$ .__$$ | $$  $$<  
+$$  /\$$\ $$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$  /\$$\ 
+$$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
+\__|  \__|\__|  \__|\__|  \__|   \__|          \__|  \__|\__|  \__|
+
+=> by thehxdev
+=> https://github.com/thehxdev/
+'
+
+	#echo -e "==========  ULTIMATE  =========="
+	#echo -e "${Blue}1. Ultimate Configuration (All Protocols + XTLS/TLS) ${Yellow}(Single User)${Color_Off}"
+	#echo -e "==========  VLESS  =========="
+	#echo -e "${Green}2. VLESS + WS + TLS${Color_Off}"
+	#echo -e "${Green}3. VLESS + TCP + TLS${Color_Off}"
+	#echo -e "==========  VMESS  =========="
+	#echo -e "${Green}4. VMESS + WS ${Red}(NOT Recommended - Low Security)${Color_Off}"
+	#echo -e "${Green}5. VMESS + WS + TLS${Color_Off}"
+	#echo -e "${Green}6. VMESS + WS + Nginx (No TLS)${Color_Off}"
+	#echo -e "${Green}7. VMESS + WS + Nginx (TLS)${Color_Off}"
+	#echo -e "${Green}8. VMESS + TCP ${Red}(NOT Recommended - Low Security)${Color_Off}"
+	#echo -e "${Green}9. VMESS + TCP + TLS${Color_Off}"
+	#echo -e "==========  TROJAN  =========="
+	#echo -e "${Green}10. Trojan + TCP + TLS${Color_Off}"
+	#echo -e "${Green}11. Trojan + WS + TLS${Color_Off}"
+	echo -e "${Green}1. Setup Xray${Color_Off}"
+	#echo -e "========== Forwarding =========="
+	#echo -e "${Green}12. Send Golang and Gost to domestic relay${Color_Off}"
+	#echo -e "${Green}13. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	#echo -e "${Green}14. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Green}2. Forwarding Tools${Color_Off}"
+	#echo -e "========== Settings =========="
+	#echo -e "${Green}15. Change vps DNS to Cloudflare${Color_Off}"
+	#echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
+	echo -e "${Green}3. Xray and VPS Settings${Color_Off}"
+	echo -e "${Green}4. User Management and Backup Tools${Color_Off}"
+	#echo -e "${Cyan}17. Get Users Configuration Link${Color_Off}"
+	#echo -e "${Blue}18. User Management System${Color_Off}"
+	#echo -e "${Green}19. Make Backup${Color_Off}"
+	#echo -e "${Green}20. Restore existing backup${Color_Off}"
+	echo -e "${Red}5. Uninstall Xray${Color_Off}"
+	echo -e "${Yellow}6. Exit${Color_Off}\n"
+
+	read -rp "Enter an Option: " menu_num
+	case $menu_num in
+	1)
+		xray_setup_menu
+		;;
+	2)
+		forwarding_menu
+		;;
+	3)
+		xray_and_vps_settings
+		;;
+	4)
+		user_management_and_backup_menu
+		;;
+	5)
+		xray_uninstall
+		;;
+	6)
+		exit 0
+		;;
+	*)
+		print_error "Invalid Option. Run script again!"
+		exit 1
+	esac
+#	1)
+#		ultimate_server_config
+#		;;
+#	2)
+#		vless_ws_tls
+#		echo -e "1" > ${users_count_file}
+#		echo -e "1" > ${users_number_in_config_file}
+#		;;
+#	3)
+#		vless_tcp_tls
+#		echo -e "1" > ${users_count_file}
+#		echo -e "1" > ${users_number_in_config_file}
+#		;;
+#	4)
+#		vmess_ws
+#		echo -e "1" > ${users_count_file}
+#		echo -e "1" > ${users_number_in_config_file}
+#		;;
+#	5)
+#		vmess_ws_tls
+#		echo -e "1" > ${users_count_file}
+#		echo -e "1" > ${users_number_in_config_file}
+#		;;
+#	6)
+#		vmess_ws_nginx
+#		echo -e "1" > ${users_count_file}
+#		echo -e "1" > ${users_number_in_config_file}
+#		;;
+#	7)
+#		vmess_ws_nginx_tls
+#		echo -e "1" > ${users_count_file}
+#		echo -e "1" > ${users_number_in_config_file}
+#		;;
+#	8)
+#		vmess_tcp
+#		echo -e "1" > ${users_count_file}
+#		echo -e "1" > ${users_number_in_config_file}
+#		;;
+#	9)
+#		vmess_tcp_tls
+#		echo -e "1" > ${users_count_file}
+#		echo -e "1" > ${users_number_in_config_file}
+#		;;
+#	10)
+#		trojan_tcp_tls
+#		;;
+#	11)
+#		trojan_ws_tls
+#		;;
+#	12)
+#		send_go_and_gost
+#		;;
+#	13)
+#		install_gost_and_go_tls
+#		;;
+#	14)
+#		install_gost_and_go_notls
+#		;;
+#	15)
+#		cloudflare_dns
+#		;;
+#	16)
+#		bbr_boost
+#		;;
+#	17)
+#		get_config_link
+#		#print_error "This Future Is NOT Ready Yet."
+#		#exit 0
+#		;;
+#	18)
+#		if ! command -v jq; then
+#			apt update && apt install jq
+#		fi
+#		bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
+#		;;
+#	19)
+#		make_backup
+#		;;
+#	20)
+#		restore_backup
+#		;;
 }
 
 greetings_screen "$@"
