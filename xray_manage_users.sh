@@ -33,6 +33,10 @@ function print_error() {
 	echo -e "${ERROR} $1 ${Color_Off}"
 }
 
+function print_info() {
+	echo -e "${INFO} $1 ${Color_Off}"
+}
+
 function judge() {
 	if [[ 0 -eq $? ]]; then
 		print_ok "$1 Finished"
@@ -139,6 +143,12 @@ function get_user_info() {
 }
 
 function delete_user() {
+	current_users_count=$(cat ${users_count_file})
+	if [[ ${current_users_count} == "1" ]]; then
+		print_error "You can't delete the last user. Xray Must have at least ONE user."
+		print_info "Please create second user then try again."
+		exit 1
+	fi
 	user_counter
 	cp ${config_path} ${xray_conf_dir}/config.json.bak
 	echo -e ""
