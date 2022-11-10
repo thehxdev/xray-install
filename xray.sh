@@ -1573,9 +1573,48 @@ function nginx_status() {
 
 # ===================================== #
 
+# Read Xray Config
+
+function read_current_config() {
+	if [[ -e "${config_path}" ]]; then
+		current_port=$(cat ${config_path} | jq .inbounds[0].port)
+		current_protocol=$(cat ${config_path} | jq .inbounds[0].protocol)
+		current_users_count=$(cat ${users_count_file})
+		current_network=$(cat ${config_path} | jq .inbounds[0].streamSettings.network)
+		current_ws_path=$(cat ${config_path} | jq .inbounds[0].streamSettings.wsSettings.path)
+		current_security=$(cat ${config_path} | jq .inbounds[0].streamSettings.security)
+
+		echo -e "========================================="
+		echo -e "Users Count: ${current_users_count}"
+		if [[ ${current_port} == "10000" ]]; then
+			if grep "127.0.0.1" ${config_path}; then
+				echo -e "Port: 443 (Nginx)"
+			else
+				echo -e "Port: ${current_port}"
+			fi
+		else
+			echo -e "Port: ${current_port}"
+		fi
+		echo -e "Protocol: ${current_protocol}"
+		echo -e "Network: ${current_network}"
+		if [[ -n ${current_ws_path} ]]; then
+			echo -e "WebSocket Path: ${current_ws_path}"
+		else
+			echo -e "Websocket Path: None or Not Used"
+		fi
+		echo -e "Security: ${current_security}"
+		echo -e "========================================="
+	else
+		print_error "Xray config NOT found! Probably Xray is not installed!"
+		exit 1
+	fi
+}
+
+# ===================================== #
+
 function xray_setup_menu() {
 	clear
-	echo -e "==========  ULTIMATE  =========="
+	echo -e "========  ULTIMATE  ========="
 	echo -e "${Blue}1. Ultimate Configuration (All Protocols + XTLS/TLS) ${Yellow}(Single User)${Color_Off}"
 	echo -e "==========  VLESS  =========="
 	echo -e "${Green}2. VLESS + WS + TLS${Color_Off}"
@@ -1686,7 +1725,8 @@ function xray_and_vps_settings() {
 	echo -e "${Green}2. Enable BBR TCP Boost${Color_Off}"
 	echo -e "${Green}3. Get Xray Status${Color_Off}"
 	echo -e "${Green}4. Get Nginx Status${Color_Off}"
-	echo -e "${Yellow}5. Exit${Color_Off}\n"
+	echo -e "${Green}5. Get Current Xray Config Info${Color_Off}"
+	echo -e "${Yellow}6. Exit${Color_Off}\n"
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
 	1)
@@ -1702,6 +1742,9 @@ function xray_and_vps_settings() {
 		nginx_status
 		;;
 	5)
+		read_current_config
+		;;
+	6)
 		exit 0
 		;;
 	*)
