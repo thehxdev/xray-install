@@ -1553,6 +1553,24 @@ function xray_status() {
 	fi
 }
 
+# Nginx Status
+
+function nginx_status() {
+	if ! command -v nginx; then
+		print_info "Nginx is not installed"
+		exit 1
+	else
+		systemd_nginx_status=$(systemctl status nginx | grep Active | grep -Eo "active|inactive")
+		if [[ ${systemd_nginx_status} == "active" ]]; then
+			echo -e "${Green}Active${Color_Off}"
+			exit 0
+		elif [[ ${systemd_nginx_status} == "inactive" ]]; then
+			echo -e "${Red}Inactive${Color_Off}"
+			exit 0
+		fi
+	fi
+}
+
 # ===================================== #
 
 function xray_setup_menu() {
@@ -1667,7 +1685,8 @@ function xray_and_vps_settings() {
 	echo -e "${Green}1. Change vps DNS to Cloudflare${Color_Off}"
 	echo -e "${Green}2. Enable BBR TCP Boost${Color_Off}"
 	echo -e "${Green}3. Get Xray Status${Color_Off}"
-	echo -e "${Yellow}4. Exit${Color_Off}\n"
+	echo -e "${Green}4. Get Nginx Status${Color_Off}"
+	echo -e "${Yellow}5. Exit${Color_Off}\n"
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
 	1)
@@ -1680,6 +1699,9 @@ function xray_and_vps_settings() {
 		xray_status
 		;;
 	4)
+		nginx_status
+		;;
+	5)
 		exit 0
 		;;
 	*)
