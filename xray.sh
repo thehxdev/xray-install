@@ -36,7 +36,7 @@ OK="${Green}[OK]"
 ERROR="${Red}[ERROR]"
 INFO="${Yellow}[INFO]"
 
-SLEEP="sleep 1"
+SLEEP="sleep 0.1"
 
 #print OK
 function print_ok() {
