@@ -552,12 +552,6 @@ function modify_ws_VMESS_WS() {
 
 # ================================================================ #
 
-#function configure_xray() {
-#	rm -f ${xray_conf_dir}/config.json && wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/wulabing/Xray_onekey/main/config/xray_xtls-rprx-direct.json
-#	modify_UUID
-#	modify_port
-#}
-
 function configure_certbot() {
 	mkdir /ssl >/dev/null 2>&1
 	installit certbot python3-certbot
@@ -678,13 +672,6 @@ function configure_user_management() {
 		judge "initialize first user"
 		xray_tmp_config_file_check_and_use
 	fi
-
-	#if grep -E -o "trojan" ${config_path}; then
-	#	print_error "Trojan is single user"
-	#	exit 1
-	#else
-	#	print_ok "server config is not trojan!"
-	#fi
 
 	if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
 		print_info "users_count.txt not found! Creating one..."
@@ -1487,6 +1474,13 @@ function make_backup() {
 		print_info "nginx configs not found or not installed. No Problem!"
 	fi
 
+	if [[ -e "/ssl" ]]; then
+		cp -r /ssl ${backup_dir}
+		judge "copy SSL certs for xray"
+	else
+		print_info "No SSL certificate found for xray. No problem!"
+	fi
+
 	if ! command -v gzip; then
 		installit gzip tar
 	else
@@ -1545,6 +1539,26 @@ function restore_backup() {
 			cp ${backup_dir}/domain.txt /usr/local/domain.txt
 			judge "restore domain.txt"
 		fi
+
+		if [ -e "${backup_dir}/ssl" ]; then
+			if [ -e "/ssl/xray.crt" && -e "/ssl/xray.key" ]; then
+				print_info "You already have SSL certificates in your /ssl/ directory. Do you want to replace them with old ones? [y/n]"
+				read -r replace_old_ssl
+				case $replace_old_ssl in
+				[yY][eE][sS] | [yY])
+					mv /ssl /ssl_old
+					judge "rename /ssl dir"
+					cp -r ${backup_dir}/ssl /
+					judge "restore SSL certificates for xray"
+					chown -R nobody.$cert_group /ssl/*
+					;;
+				*) ;;
+				esac
+			else
+				cp -r ${backup_dir}/ssl /
+				judge "restore SSL certificates for xray"
+			fi
+		fi
 	fi
 }
 
@@ -1556,9 +1570,11 @@ function xray_status() {
 	systemd_xray_status=$(systemctl status xray | grep Active | grep -Eo "active|inactive")
 	if [[ ${systemd_xray_status} == "active" ]]; then
 		echo -e "${Green}Active${Color_Off}"
+		xray_status_var="active"
 		exit 0
 	elif [[ ${systemd_xray_status} == "inactive" ]]; then
 		echo -e "${Red}Inactive${Color_Off}"
+		xray_status_var="inactive"
 		exit 0
 	fi
 }
@@ -1573,9 +1589,11 @@ function nginx_status() {
 		systemd_nginx_status=$(systemctl status nginx | grep Active | grep -Eo "active|inactive")
 		if [[ ${systemd_nginx_status} == "active" ]]; then
 			echo -e "${Green}Active${Color_Off}"
+			nginx_status_var="active"
 			exit 0
 		elif [[ ${systemd_nginx_status} == "inactive" ]]; then
 			echo -e "${Red}Inactive${Color_Off}"
+			nginx_status_var="inactive"
 			exit 0
 		fi
 	fi
@@ -1622,6 +1640,54 @@ function read_current_config() {
 
 # ===================================== #
 
+function get_ssl_certificate() {
+	check_bash
+	check_root
+	check_os
+
+	#if [ -e "/ssl/xray.crt" && -e "/ssl/xray.key" ]; then
+	#	print_info "You Already have SSL certificates for Xray! Do you want to remove them? [y/n]"
+	#	read -r remove_ssl_certs
+	#	case $remove_ssl_certs in
+	#	[yY][eE][sS] | [yY])
+	#		apt purge certbot python3-certbot -y
+	#		rm -rf /etc/letsencrypt/
+	#		rm -rf /var/log/letsencrypt/
+	#		rm -rf /etc/systemd/system/*certbot*
+	#		rm -rf /ssl/
+	#		;;
+	#	*) ;;
+	#	esac
+	#fi
+
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	domain_check
+
+	if [ ! -e "/usr/local/bin/xray" && ! -e "${xray_conf_dir}" ]; then
+		xray_install
+	else
+		print_ok "xray is already installed"
+	fi
+
+	if id -u nobody >/dev/null; then
+		print_ok "user nobody exist"
+		groupadd nobody
+		gpasswd -a nobody nobody
+		judge "add nobody user to nobody group"
+	else
+		useradd nobody
+		judge "create nobody user"
+		groupadd nobody
+		gpasswd -a nobody nobody
+		judge "add nobody user to nobody group"
+	fi
+	configure_certbot
+}
+
+# ===================================== #
 function xray_setup_menu() {
 	clear
 	echo -e "========  ULTIMATE  ========="
@@ -1736,7 +1802,8 @@ function xray_and_vps_settings() {
 	echo -e "${Green}3. Get Xray Status${Color_Off}"
 	echo -e "${Green}4. Get Nginx Status${Color_Off}"
 	echo -e "${Green}5. Get Current Xray Config Info${Color_Off}"
-	echo -e "${Yellow}6. Exit${Color_Off}\n"
+	echo -e "${Green}6. Install Xray and Get SSL Certificate - No Configuration (If Xray already installed it only gets SSL certs)${Color_Off}"
+	echo -e "${Yellow}7. Exit${Color_Off}\n"
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
 	1)
@@ -1755,6 +1822,9 @@ function xray_and_vps_settings() {
 		read_current_config
 		;;
 	6)
+		get_ssl_certificate
+		;;
+	7)
 		exit 0
 		;;
 	*)
