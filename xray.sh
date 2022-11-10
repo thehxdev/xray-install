@@ -17,6 +17,7 @@ xray_conf_dir="/usr/local/etc/xray"
 config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
 users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
+access_log_path="/var/log/xray/access.log"
 proto_file="/usr/local/etc/xray/proto.txt"
 backup_dir="/root/xray_backup"
 website_dir="/var/www/html" 
@@ -1301,8 +1302,63 @@ function ultimate_server_config() {
 
 # ===================================== #
 
-# Get Config Link
+# Dokodemo
+function dokodemo_door_setup() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	xray_install
+	read -rp "Enter Listening Port: " LISTENING_PORT
+	read -rp "Enter Foreign Server IP Address: " FOREIGN_SERVER_IP
+	read -rp "Enter Foreign Server Port: " FOREIGN_SERVER_PORT
+	cat << EOF > ${xray_conf_dir}/config.json
+{
+	"inbounds": [
+		{
+			"port": ${LISTENING_PORT},
+			"listen": "0.0.0.0",
+			"protocol": "dokodemo-door",
+			"settings": {
+				"address": "${FOREIGN_SERVER_IP}",
+				"port": ${FOREIGN_SERVER_PORT},
+				"network": "tcp,udp",
+				"timeout": 0,
+				"followRedirect": false,
+				"userLevel": 0
+			}
+		}
+	],
+	"outbounds": [
+		{
+			"protocol": "freedom"
+		}
+	]
+}
+EOF
+	restart_xray
+	CONFIG_PROTO="dokodemo"
+	save_protocol
+}
 
+function shecan_dns() {
+	ip_check
+	if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
+		print_error "Shecan does not support IPv6"
+		exit 1
+	else
+		echo "nameserver 178.22.122.100" > /etc/resolv.conf
+		echo "nameserver 185.51.200.2" >> /etc/resolv.conf
+		judge "add IPv4 DNS to resolv.conf"
+	fi
+}
+
+# ===================================== #
+
+# Get Config Link
 function save_protocol() {
 	if [[ -e "/usr/local/etc/xray" ]]; then
 		#echo "${CONFIG_PROTO}" > /usr/local/etc/xray/proto.txt
@@ -1428,8 +1484,7 @@ function get_current_protocol() {
 function make_backup() {
 	if [ ! -e ${backup_dir} ]; then
 		mkdir ${backup_dir} >/dev/null 2>&1
-		judge "make bakup directory"
-	else
+		judge "make bakup directory" else
 		print_ok "backup directory exist!"
 		rm -rf /root/old_xray_backups/*
 		judge "make old_xray_backups directory empty"
@@ -1773,7 +1828,8 @@ function forwarding_menu() {
 	echo -e "${Green}1. Send Golang and Gost to domestic relay${Color_Off}"
 	echo -e "${Green}2. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "${Green}3. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-	echo -e "${Yellow}4. Exit${Color_Off}\n"
+	echo -e "${Green}4. Install and configure Xray Dokodemo-door${Cyan}(Run on domestic relay)${Color_Off}"
+	echo -e "${Yellow}5. Exit${Color_Off}\n"
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
 	1)
@@ -1786,6 +1842,9 @@ function forwarding_menu() {
 		install_gost_and_go_notls
 		;;
 	4)
+		dokodemo_door_setup
+		;;
+	5)
 		exit 0
 		;;
 	*)
@@ -1798,33 +1857,37 @@ function xray_and_vps_settings() {
 	clear
 	echo -e "========== Settings =========="
 	echo -e "${Green}1. Change vps DNS to Cloudflare${Color_Off}"
-	echo -e "${Green}2. Enable BBR TCP Boost${Color_Off}"
-	echo -e "${Green}3. Get Xray Status${Color_Off}"
-	echo -e "${Green}4. Get Nginx Status${Color_Off}"
-	echo -e "${Green}5. Get Current Xray Config Info${Color_Off}"
-	echo -e "${Green}6. Install Xray and Get SSL Certificate - No Configuration (If Xray already installed it only gets SSL certs)${Color_Off}"
-	echo -e "${Yellow}7. Exit${Color_Off}\n"
+	echo -e "${Green}2. Change vps DNS to Shecan${Color_Off}"
+	echo -e "${Green}3. Enable BBR TCP Boost${Color_Off}"
+	echo -e "${Green}4. Get Xray Status${Color_Off}"
+	echo -e "${Green}5. Get Nginx Status${Color_Off}"
+	echo -e "${Green}6. Get Current Xray Config Info${Color_Off}"
+	echo -e "${Green}7. Install Xray and Get SSL Certificate - No Configuration (If Xray already installed it only gets SSL certs)${Color_Off}"
+	echo -e "${Yellow}8. Exit${Color_Off}\n"
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
 	1)
 		cloudflare_dns
 		;;
 	2)
-		bbr_boost
+		shecan_dns
 		;;
 	3)
-		xray_status
+		bbr_boost
 		;;
 	4)
-		nginx_status
+		xray_status
 		;;
 	5)
-		read_current_config
+		nginx_status
 		;;
 	6)
-		get_ssl_certificate
+		read_current_config
 		;;
 	7)
+		get_ssl_certificate
+		;;
+	8)
 		exit 0
 		;;
 	*)

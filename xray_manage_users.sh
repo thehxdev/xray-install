@@ -16,6 +16,7 @@ xray_conf_dir="/usr/local/etc/xray"
 config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
 users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
+access_log_path="/var/log/xray/access.log"
 
 OK="${Green}[OK]"
 ERROR="${Red}[ERROR]"
