@@ -583,6 +583,16 @@ function renew_certbot() {
 function xray_uninstall() {
 	curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
 	rm -rf $website_dir/*
+
+	print_ok "Do you want to Disable (Not uninstall) Nginx [y/n]?"
+	read -r disable_nginx
+	case $disable_nginx in
+	[yY][eE][sS] | [yY])
+		systemctl disable --now nginx.service
+		;;
+	*) ;;
+	esac
+
 	print_ok "Do you want to uninstall Nginx [y/n]?"
 	read -r uninstall_nginx
 	case $uninstall_nginx in
@@ -607,7 +617,7 @@ function xray_uninstall() {
 		esac
 	fi
 
-	print_ok "Uninstall certbot? [y/n]?"
+	print_ok "Uninstall certbot (This will remove SSL Cert files too)? [y/n]?"
 	read -r uninstall_certbot
 	case $uninstall_certbot in
 	[yY][eE][sS] | [yY])
@@ -1805,36 +1815,10 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 => https://github.com/thehxdev/
 '
 
-	#echo -e "==========  ULTIMATE  =========="
-	#echo -e "${Blue}1. Ultimate Configuration (All Protocols + XTLS/TLS) ${Yellow}(Single User)${Color_Off}"
-	#echo -e "==========  VLESS  =========="
-	#echo -e "${Green}2. VLESS + WS + TLS${Color_Off}"
-	#echo -e "${Green}3. VLESS + TCP + TLS${Color_Off}"
-	#echo -e "==========  VMESS  =========="
-	#echo -e "${Green}4. VMESS + WS ${Red}(NOT Recommended - Low Security)${Color_Off}"
-	#echo -e "${Green}5. VMESS + WS + TLS${Color_Off}"
-	#echo -e "${Green}6. VMESS + WS + Nginx (No TLS)${Color_Off}"
-	#echo -e "${Green}7. VMESS + WS + Nginx (TLS)${Color_Off}"
-	#echo -e "${Green}8. VMESS + TCP ${Red}(NOT Recommended - Low Security)${Color_Off}"
-	#echo -e "${Green}9. VMESS + TCP + TLS${Color_Off}"
-	#echo -e "==========  TROJAN  =========="
-	#echo -e "${Green}10. Trojan + TCP + TLS${Color_Off}"
-	#echo -e "${Green}11. Trojan + WS + TLS${Color_Off}"
 	echo -e "${Green}1. Setup Xray${Color_Off}"
-	#echo -e "========== Forwarding =========="
-	#echo -e "${Green}12. Send Golang and Gost to domestic relay${Color_Off}"
-	#echo -e "${Green}13. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-	#echo -e "${Green}14. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "${Green}2. Forwarding Tools${Color_Off}"
-	#echo -e "========== Settings =========="
-	#echo -e "${Green}15. Change vps DNS to Cloudflare${Color_Off}"
-	#echo -e "${Green}16. Enable BBR TCP Boost${Color_Off}"
 	echo -e "${Green}3. Xray and VPS Settings${Color_Off}"
 	echo -e "${Green}4. User Management and Backup Tools${Color_Off}"
-	#echo -e "${Cyan}17. Get Users Configuration Link${Color_Off}"
-	#echo -e "${Blue}18. User Management System${Color_Off}"
-	#echo -e "${Green}19. Make Backup${Color_Off}"
-	#echo -e "${Green}20. Restore existing backup${Color_Off}"
 	echo -e "${Red}5. Uninstall Xray${Color_Off}"
 	echo -e "${Yellow}6. Exit${Color_Off}\n"
 
@@ -1862,87 +1846,6 @@ $$ /  $$ |$$ |  $$ |$$ |  $$ |   $$ |          $$ |  $$ |$$ /  $$ |
 		print_error "Invalid Option. Run script again!"
 		exit 1
 	esac
-#	1)
-#		ultimate_server_config
-#		;;
-#	2)
-#		vless_ws_tls
-#		echo -e "1" > ${users_count_file}
-#		echo -e "1" > ${users_number_in_config_file}
-#		;;
-#	3)
-#		vless_tcp_tls
-#		echo -e "1" > ${users_count_file}
-#		echo -e "1" > ${users_number_in_config_file}
-#		;;
-#	4)
-#		vmess_ws
-#		echo -e "1" > ${users_count_file}
-#		echo -e "1" > ${users_number_in_config_file}
-#		;;
-#	5)
-#		vmess_ws_tls
-#		echo -e "1" > ${users_count_file}
-#		echo -e "1" > ${users_number_in_config_file}
-#		;;
-#	6)
-#		vmess_ws_nginx
-#		echo -e "1" > ${users_count_file}
-#		echo -e "1" > ${users_number_in_config_file}
-#		;;
-#	7)
-#		vmess_ws_nginx_tls
-#		echo -e "1" > ${users_count_file}
-#		echo -e "1" > ${users_number_in_config_file}
-#		;;
-#	8)
-#		vmess_tcp
-#		echo -e "1" > ${users_count_file}
-#		echo -e "1" > ${users_number_in_config_file}
-#		;;
-#	9)
-#		vmess_tcp_tls
-#		echo -e "1" > ${users_count_file}
-#		echo -e "1" > ${users_number_in_config_file}
-#		;;
-#	10)
-#		trojan_tcp_tls
-#		;;
-#	11)
-#		trojan_ws_tls
-#		;;
-#	12)
-#		send_go_and_gost
-#		;;
-#	13)
-#		install_gost_and_go_tls
-#		;;
-#	14)
-#		install_gost_and_go_notls
-#		;;
-#	15)
-#		cloudflare_dns
-#		;;
-#	16)
-#		bbr_boost
-#		;;
-#	17)
-#		get_config_link
-#		#print_error "This Future Is NOT Ready Yet."
-#		#exit 0
-#		;;
-#	18)
-#		if ! command -v jq; then
-#			apt update && apt install jq
-#		fi
-#		bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
-#		;;
-#	19)
-#		make_backup
-#		;;
-#	20)
-#		restore_backup
-#		;;
 }
 
 greetings_screen "$@"
