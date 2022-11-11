@@ -1547,14 +1547,14 @@ function make_backup() {
 }
 
 function restore_backup() {
-	if [ ! -e "/usr/local/bin/xray" && ! -e "/usr/local/etc/xray" ]; then
+	if [[ ! -e "/usr/local/bin/xray" && ! -e "/usr/local/etc/xray" ]]; then
 		print_info "xray is not installed" && sleep 0.5
 		print_info "installing xray-core" && sleep 1
 		xray_install
 	else
 		print_ok "xray is installed"
 	fi
-	if [ -e "/root/xray_backup.tar.gz" ]; then
+	if [[ -e "/root/xray_backup.tar.gz" ]]; then
 		tar -xzf /root/xray_backup.tar.gz -C /root/xray_backup
 		judge "extract backup file"
 	else
@@ -1562,8 +1562,8 @@ function restore_backup() {
 		exit 1
 	fi
 
-	if [ -e "${backup_dir}" ]; then
-		if [ -e "${backup_dir}/nginx" ]; then
+	if [[ -e "${backup_dir}" ]]; then
+		if [[ -e "${backup_dir}/nginx" ]]; then
 			cp -r ${backup_dir}/nginx /etc/
 			judge "restore nginx config."
 			if command -v nginx; then
@@ -1577,8 +1577,8 @@ function restore_backup() {
 			fi
 		fi
 
-		if [ -e "${backup_dir}/xray" ]; then
-			if [ -e "${xray_conf_dir}" ]; then
+		if [[ -e "${backup_dir}/xray" ]]; then
+			if [[ -e "${xray_conf_dir}" ]]; then
 				rm -rf ${xray_conf_dir}/*
 				judge "remove old configs"
 				cp -r ${backup_dir}/xray/* ${xray_conf_dir}/
@@ -1590,13 +1590,13 @@ function restore_backup() {
 			fi
 		fi
 
-		if [ -e "${backup_dir}/domain.txt" ]; then
+		if [[ -e "${backup_dir}/domain.txt" ]]; then
 			cp ${backup_dir}/domain.txt /usr/local/domain.txt
 			judge "restore domain.txt"
 		fi
 
-		if [ -e "${backup_dir}/ssl" ]; then
-			if [ -e "/ssl/xray.crt" && -e "/ssl/xray.key" ]; then
+		if [[ -e "${backup_dir}/ssl" ]]; then
+			if [[ -e "/ssl/xray.crt" && -e "/ssl/xray.key" ]]; then
 				print_info "You already have SSL certificates in your /ssl/ directory. Do you want to replace them with old ones? [y/n]"
 				read -r replace_old_ssl
 				case $replace_old_ssl in
