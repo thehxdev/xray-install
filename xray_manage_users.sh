@@ -68,7 +68,7 @@ function user_counter() {
 		current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
 		name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
 		current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
-		echo -e "  ${i}) $name \t(e-n: ${current_user_number})"
+		echo -e "  ${i}) $name \t(email-num: ${current_user_number})"
 	done
 	echo -e ""
 }
@@ -169,7 +169,7 @@ function delete_user() {
 }
 
 function first_run() {
-	echo -e "checking..."
+	#echo -e "checking..."
 	if [[ ! -e "${config_path}" ]]; then
 		print_error "can't find xray config. Seems like you don't installed xray"
 		exit 1
@@ -207,12 +207,66 @@ function first_run() {
 	fi
 }
 
+function clear_xray_log() {
+	if [[ -e ${access_log_path} ]]; then
+		echo "" > ${access_log_path}
+	else
+		print_error "can't find access.log file"
+		exit 1
+	fi
+}
+
+function save_active_connections() {
+	#ss -tnp | grep "xray" | awk '{print $5}' | grep "\[::ffff" | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq > ${xray_conf_dir}/active_connections.txt
+	active_connections_count=$(ss -tnp | grep "xray" | awk '{print $5}' | grep "\[::ffff" | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq | wc -l)
+}
+
+function save_log_connections() {
+	users_count=$(cat ${users_count_file})
+
+	if [[ -e ${users_number_in_config_file} ]];then
+		rm -rf ${users_number_in_config_file}
+		judge "remove old user_number file"
+		touch ${users_number_in_config_file}
+		judge "create new user_number file"
+	fi
+
+	cat ${config_path} | grep "email" | grep -Eo "[1-9]{1,3}@" | tr -d "@" | xargs -I INPUT echo INPUT >> ${users_number_in_config_file}
+	judge "write users in users_number file"
+
+	if [ ! -e "${xray_conf_dir}/users_connection" ]; then
+		print_info "Can't find users_connection directory. Making it..."
+		mkdir ${xray_conf_dir}/users_connection >/dev/null 2>&1
+		judge "make users_connection directory"
+	fi
+
+	for ((i = 0; i < ${users_count}; i++)); do
+		config_i=$(($i + 1))
+		current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
+		name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
+		current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
+		#cat ${access_log_path} | grep "${name}" | awk '{print $3}' | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq | wc -l > ${xray_conf_dir}/users_connection/${name}.txt
+		cat ${access_log_path} | grep "${name}" | awk '{print $3}' | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq | wc -l > ${xray_conf_dir}/users_connection/${i}.txt
+	done
+	clear_xray_log
+}
+
+function show_connections() {
+	save_active_connections
+	save_log_connections
+	user_counter
+	read -rp "Enter user number: " user_number
+	chosen_user_connections=$(cat ${xray_conf_dir}/users_connection/${user_number}.txt)
+	echo -e "Chosen user connections count: ${chosen_user_connections}"
+}
+
 clear
 
 echo -e "${Green}1) get users info${Color_Off}"
 echo -e "${Green}2) add new user${Color_Off}"
 echo -e "${Red}3) delete user${Color_Off}"
-echo -e "${Cyan}4) exit\n${Color_Off}"
+echo -e "${Red}4) Show each user's connections count${Color_Off}"
+echo -e "${Cyan}5) exit\n${Color_Off}"
 
 read -rp "Enter menu Number: " menu_number
 
@@ -234,6 +288,9 @@ case $menu_number in
 	first_run
 	delete_user
 	systemctl restart xray
+	;;
+4)
+	show_connections
 	;;
 4)
 	exit 0
