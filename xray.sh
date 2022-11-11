@@ -1607,13 +1607,16 @@ function restore_backup() {
 					judge "restore SSL certificates for xray"
 					chown -R nobody.$cert_group /ssl/*
 					;;
-				*) ;;
+				*) 
+					print_info "SSL certificates remained untouched"
+					;;
 				esac
-			else
-				cp -r ${backup_dir}/ssl /
-				judge "restore SSL certificates for xray"
 			fi
+		else
+			cp -r ${backup_dir}/ssl /
+			judge "restore SSL certificates for xray"
 		fi
+		print_ok "Bakup restore Finished"
 	fi
 }
 
