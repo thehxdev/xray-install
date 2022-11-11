@@ -1511,7 +1511,7 @@ function make_backup() {
 
 	if [ -e "/etc/nginx" ]; then
 		WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-		WEBSOCKET_PATH_IN_NGINX=$(grep -oq ${WEBSOCKET_PATH} ${nginx_conf})
+		WEBSOCKET_PATH_IN_NGINX=$(grep -o ${WEBSOCKET_PATH} ${nginx_conf})
 		if [[ -n ${WEBSOCKET_PATH} && -n ${WEBSOCKET_PATH_IN_NGINX} ]]; then
 			if [[ ${WEBSOCKET_PATH} == ${WEBSOCKET_PATH_IN_NGINX} ]]; then
 				cp -r /etc/nginx/ ${backup_dir}
