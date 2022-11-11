@@ -1542,7 +1542,7 @@ function make_backup() {
 		print_ok "gzip installed"
 	fi
 
-	tar -czf /root/xray_backup.tar.gz ${backup_dir}
+	tar -czf /root/xray_backup.tar.gz -C ${backup_dir} .
 	judge "Compress and put backup files if one .tar.gz file"
 }
 
@@ -1554,6 +1554,17 @@ function restore_backup() {
 	else
 		print_ok "xray is installed"
 	fi
+
+	if [[ -e "/root/xray_backup" ]]; then
+		mv /root/xray_backup /root/xray_backup_old
+		judge "rename old backup dir to xray_backup_old"
+		mkdir /root/xray_backup >/dev/null 2>&1
+		judge "create new xray_backup"
+	else
+		mkdir /root/xray_backup >/dev/null 2>&1
+		judge "create new xray_backup"
+	fi
+
 	if [[ -e "/root/xray_backup.tar.gz" ]]; then
 		tar -xzf /root/xray_backup.tar.gz -C /root/xray_backup
 		judge "extract backup file"
@@ -1565,7 +1576,7 @@ function restore_backup() {
 	if [[ -e "${backup_dir}" ]]; then
 		if [[ -e "${backup_dir}/nginx" ]]; then
 			cp -r ${backup_dir}/nginx /etc/
-			judge "restore nginx config."
+			judge "restore nginx config"
 			if command -v nginx; then
 				systemctl restart nginx
 				judge "restart nginx"
