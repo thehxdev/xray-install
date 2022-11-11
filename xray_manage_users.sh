@@ -307,9 +307,6 @@ case $menu_number in
 	systemctl restart xray
 	;;
 4)
-	show_connections
-	;;
-5)
 	exit 0
 	;;
 *)
