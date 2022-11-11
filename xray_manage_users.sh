@@ -260,11 +260,10 @@ function show_connections() {
 		if [[ ! -e "/usr/lib/systemd/system/clearXrayLog.service" ]]; then
 			wget https://raw.githubusercontent.com/thehxdev/xray-install/main/systemd/clearXrayLog.service -O /usr/lib/systemd/system/clearXrayLog.service
 			judge "download clearXrayLog service file"
+			systemctl enable --now clearXrayLog.service >/dev/null 2>&1
+			judge "start and enable clear_xray_log service"
 		fi
 	fi
-
-	systemctl enable --now clearXrayLog.service >/dev/null 2>&1
-	judge "start and enable clear_xray_log service"
 
 	save_active_connections
 	save_log_connections
