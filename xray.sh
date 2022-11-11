@@ -1681,9 +1681,11 @@ function read_current_config() {
 		current_network=$(cat ${config_path} | jq .inbounds[0].streamSettings.network)
 		current_ws_path=$(cat ${config_path} | jq .inbounds[0].streamSettings.wsSettings.path)
 		current_security=$(cat ${config_path} | jq .inbounds[0].streamSettings.security)
+		current_active_connections=$(ss -tnp | grep "xray" | awk '{print $5}' | grep "\[::ffff" | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq | wc -l)
 
 		echo -e "========================================="
 		echo -e "Users Count: ${current_users_count}"
+
 		if [[ ${current_port} == "10000" ]]; then
 			if grep -q "127.0.0.1" ${config_path}; then
 				echo -e "Port: 443 (Nginx)"
@@ -1693,14 +1695,22 @@ function read_current_config() {
 		else
 			echo -e "Port: ${current_port}"
 		fi
+
 		echo -e "Protocol: ${current_protocol}"
 		echo -e "Network: ${current_network}"
+
 		if [[ -n ${current_ws_path} ]]; then
 			echo -e "WebSocket Path: ${current_ws_path}"
 		else
 			echo -e "Websocket Path: None or Not Used"
 		fi
+
 		echo -e "Security: ${current_security}"
+
+		if [[ -n ${current_active_connections} ]]; then
+			echo -e "Active Connections: ${current_active_connections}"
+		fi
+
 		echo -e "========================================="
 	else
 		print_error "Xray config NOT found! Probably Xray is not installed!"
