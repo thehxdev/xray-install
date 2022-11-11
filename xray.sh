@@ -1322,7 +1322,8 @@ function trojan_tcp_xtls_client_config() {
                 "network": "tcp",
                 "security": "xtls",
                 "xtlsSettings": {
-                    "serverName": "${CONFIG_DOMAIN}"
+                    "serverName": "${CONFIG_DOMAIN}",
+					"fingerprint": "chrome"
                 }
             }
         }
@@ -1383,7 +1384,8 @@ function users_trojan_tcp_xtls_client_config() {
                 "network": "tcp",
                 "security": "xtls",
                 "xtlsSettings": {
-                    "serverName": "${CONFIG_DOMAIN}"
+                    "serverName": "${CONFIG_DOMAIN}",
+					"fingerprint": "chrome"
                 }
             }
         }
