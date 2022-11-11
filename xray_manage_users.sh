@@ -256,12 +256,14 @@ function show_connections() {
 	if [[ ! -e "${xray_conf_dir}/clear_xray_log.sh" ]]; then
 		wget https://raw.githubusercontent.com/thehxdev/xray-install/main/clear_xray_log.sh -O ${xray_conf_dir}/clear_xray_log.sh
 		judge "download clear_xray_log.sh file"
-		if [[ ! -e "/usr/lib/systemd/system/clear_xray_log.service" ]]; then
-			wget https://raw.githubusercontent.com/thehxdev/xray-install/main/systemd/clear_xray_log.service -O /usr/lib/systemd/system/clear_xray_log.service
-			judge "download clear_xray_log service file"
+		chmod +x ${xray_conf_dir}/clear_xray_log.sh
+		if [[ ! -e "/usr/lib/systemd/system/clearXrayLog.service" ]]; then
+			wget https://raw.githubusercontent.com/thehxdev/xray-install/main/systemd/clearXrayLog.service -O /usr/lib/systemd/system/clearXrayLog.service
+			judge "download clearXrayLog service file"
 		fi
 	fi
-	systemctl enable --now clear_xray_log.service >/dev/null 2>&1
+
+	systemctl enable --now clearXrayLog.service >/dev/null 2>&1
 	judge "start and enable clear_xray_log service"
 
 	save_active_connections
