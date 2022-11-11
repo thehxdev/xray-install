@@ -1589,6 +1589,10 @@ function get_config_link() {
 	elif [[ ${CURRENT_CONFIG} == "TrojanWsTls" ]]; then
 		check_domain_file
 		users_trojan_ws_tls_link_gen
+	elif [[ ${CURRENT_CONFIG} == "TrojanTcpXtls" ]]; then
+		check_domain_file
+		users_trojan_tcp_xtls_link_gen
+		users_trojan_tcp_xtls_client_config
 	fi
 }
 
