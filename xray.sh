@@ -1323,7 +1323,6 @@ EOF
 function users_trojan_tcp_xtls_client_config() {
 	user_counter
 	read -rp "Choose User: " user_number
-	read -rp "Choose config name: " config_name
 	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
 	SERVER_IP=$(curl -s4m8 https://ip.gs)
 	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
