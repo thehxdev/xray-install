@@ -62,7 +62,7 @@ function judge() {
 		print_ok "$1 Finished"
 		$SLEEP
 	else
-		print_error "$1 Failde"
+		print_error "$1 Failed"
 		exit 1
 	fi
 }
@@ -1815,7 +1815,7 @@ function restore_backup() {
 # Xray Status
 
 function xray_status() {
-	systemd_xray_status=$(systemctl status xray | grep Active | grep -Eo "active|inactive")
+	systemd_xray_status=$(systemctl status xray | grep Active | grep -Eo "active|inactive|failed")
 	if [[ ${systemd_xray_status} == "active" ]]; then
 		echo -e "${Green}Active${Color_Off}"
 		xray_status_var="active"
@@ -1823,6 +1823,10 @@ function xray_status() {
 	elif [[ ${systemd_xray_status} == "inactive" ]]; then
 		echo -e "${Red}Inactive${Color_Off}"
 		xray_status_var="inactive"
+		exit 0
+	elif [[ ${systemd_xray_status} == "failed" ]]; then
+		echo -e "${Red}failed${Color_Off}"
+		xray_status_var="failed"
 		exit 0
 	fi
 }
