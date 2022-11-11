@@ -488,6 +488,17 @@ function modify_tls() {
 	judge "change tmp file to main file"
 }
 
+function modify_xtls() {
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","xtlsSettings","certificates",0,"certificateFile"];"'${certFile}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray TLS Cert File"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
+	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","xtlsSettings","certificates",0,"keyFile"];"'${keyFile}'")' >${xray_conf_dir}/config_tmp.json
+	judge "modify Xray TLS Key File"
+	xray_tmp_config_file_check_and_use
+	judge "change tmp file to main file"
+}
+
 function modify_PASSWORD() {
 	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
 	judge "modify Xray Trojan Password"
@@ -1398,7 +1409,7 @@ function trojan_tcp_xtls() {
 	judge "Download configuration"
 	modify_port
 	modify_PASSWORD
-	modify_tls
+	modify_xtls
 	restart_xray
 	trojan_tcp_xtls_link_gen
 	CONFIG_PROTO="TrojanTcpXtls"
