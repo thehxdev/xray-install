@@ -98,6 +98,11 @@ function add_new_user() {
 		[ -z "$PASSWORD" ] && PASSWORD=$(head -n 10 /dev/urandom | md5sum | head -c 18)
 		cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
 		xray_tmp_config_file_check_and_use
+		if grep -q "xtls" ${config_path}; then
+			XTLS_FLOW="xtls-rprx-direct"
+			cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",'${users_count}',"flow"];"'${XTLS_FLOW}'")' >${xray_conf_dir}/config_tmp.json
+			xray_tmp_config_file_check_and_use
+		fi
 	else
 		print_error "Your current protocol is not supported"
 		exit 1
