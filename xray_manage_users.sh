@@ -252,6 +252,11 @@ function save_log_connections() {
 }
 
 function show_connections() {
+
+	#if [[ ! -e "${xray_conf_dir}/clear_xray_log.sh" ]]; then
+	#	wget 
+	#fi
+
 	save_active_connections
 	save_log_connections
 	user_counter
