@@ -1282,7 +1282,7 @@ function trojan_tcp_xtls_client_config() {
 	cat << EOF > /root/trojan_xtls_client_config.json
 {
     "log": {
-        "loglevel": "debug"
+        "loglevel": "warning"
     },
     "inbounds": [
         {
@@ -1343,7 +1343,7 @@ function users_trojan_tcp_xtls_client_config() {
 	cat << EOF > /root/trojan_xtls_client_config.${name}.json
 {
     "log": {
-        "loglevel": "debug"
+        "loglevel": "warning"
     },
     "inbounds": [
         {
