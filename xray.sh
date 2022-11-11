@@ -1235,7 +1235,178 @@ function trojan_ws_tls() {
 }
 
 # Trojan Tcp XTLS
-# TODO
+
+function trojan_tcp_xtls_link_gen() {
+	read -rp "Choose config name: " config_name
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
+	PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
+	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=xtls&type=tcp&flow=xtls-rprx-direct&alpn=h2,http/1.1#$config_name")
+
+	qrencode -t ansiutf8 -l L trojan://${server_link}
+	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
+}
+
+function users_trojan_tcp_xtls_link_gen() {
+	user_counter
+	read -rp "Choose User: " user_number
+	read -rp "Choose config name: " config_name
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
+	PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
+	server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=xtls&type=tcp&flow=xtls-rprx-direct&alpn=h2,http/1.1#$config_name")
+
+	qrencode -t ansiutf8 -l L trojan://${server_link}
+	echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
+}
+
+function trojan_tcp_xtls_client_config() {
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
+	PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
+
+	cat << EOF > /root/trojan_xtls_client_config.json
+{
+    "log": {
+        "loglevel": "debug"
+    },
+    "inbounds": [
+        {
+            "port": 3080,
+            "listen": "127.0.0.1",
+            "protocol": "socks",
+            "settings": {
+                "udp": true
+            }
+        },
+        {
+            "port": 3081,
+            "protocol": "http",
+            "sniffing": {
+              "enabled": true,
+              "destOverride": ["http", "tls"]
+            },
+            "settings": {
+              "auth": "noauth"
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "trojan",
+            "settings": {
+                "servers": [
+                    {
+                        "address": "${SERVER_IP}",
+                        "flow": "xtls-rprx-direct",
+                        "port": ${PORT},
+                        "password": "${PASSWORD}"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "xtls",
+                "xtlsSettings": {
+                    "serverName": "${CONFIG_DOMAIN}"
+                }
+            }
+        }
+    ]
+}
+EOF
+}
+
+function users_trojan_tcp_xtls_client_config() {
+	user_counter
+	read -rp "Choose User: " user_number
+	read -rp "Choose config name: " config_name
+	PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+	SERVER_IP=$(curl -s4m8 https://ip.gs)
+	CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
+	PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
+	name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${user_number}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
+
+	cat << EOF > /root/trojan_xtls_client_config.${name}.json
+{
+    "log": {
+        "loglevel": "debug"
+    },
+    "inbounds": [
+        {
+            "port": 3080,
+            "listen": "127.0.0.1",
+            "protocol": "socks",
+            "settings": {
+                "udp": true
+            }
+        },
+        {
+            "port": 3081,
+            "protocol": "http",
+            "sniffing": {
+              "enabled": true,
+              "destOverride": ["http", "tls"]
+            },
+            "settings": {
+              "auth": "noauth"
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "trojan",
+            "settings": {
+                "servers": [
+                    {
+                        "address": "${SERVER_IP}",
+                        "flow": "xtls-rprx-direct",
+                        "port": ${PORT},
+                        "password": "${PASSWORD}"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "xtls",
+                "xtlsSettings": {
+                    "serverName": "${CONFIG_DOMAIN}"
+                }
+            }
+        }
+    ]
+}
+EOF
+
+	print_ok "User Config file --> /root/trojan_xtls_client_config.${name}.json"
+}
+
+function trojan_tcp_xtls() {
+	check_bash
+	check_root
+	check_os
+	disable_firewalls
+	install_deps
+	basic_optimization
+	ip_check
+	domain_check
+	xray_install
+	configure_certbot
+	wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-TCP-XTLS-s/config_server.json
+	judge "Download configuration"
+	modify_port
+	modify_PASSWORD
+	modify_tls
+	restart_xray
+	trojan_tcp_xtls_link_gen
+	CONFIG_PROTO="TrojanTcpXtls"
+	save_protocol
+}
+
+# ================================== #
 
 # Ultimate conf
 function trojan_u_link_gen() {
@@ -1426,7 +1597,7 @@ function get_config_link() {
 # Define current protocol
 function get_current_protocol() {
 	if [ ! -e "${proto_file}" ]; then
-		if grep -q "xtls" ${config_path}; then
+		if grep -q "xtls" ${config_path} && grep -q "vless" ${config_path}; then
 			echo -e "ultimate" > ${proto_file}
 			judge "add ultimate to proto.txt"
 
@@ -1463,12 +1634,16 @@ function get_current_protocol() {
 			judge "add VmessTcpTls to proto.txt"
 
 		elif grep -q "trojan" ${config_path} && grep -q "tcp" ${config_path}; then
-			echo -q "TrojanTcpTls" > ${proto_file}
+			echo -e "TrojanTcpTls" > ${proto_file}
 			judge "add TrojanTcpTls to proto.txt"
 
 		elif grep -q "trojan" ${config_path} && grep -q "wsSettings"; then
-			echo -q "TrojanWsTls" > ${proto_file}
+			echo -e "TrojanWsTls" > ${proto_file}
 			judge "add TrojanWsTls to proto.txt"
+
+		elif grep -q "trojan" ${config_path} && grep -q "xtls" ${config_path}; then
+			echo -e "TrojanTcpXtls" > ${proto_file}
+			judge "add TrojanTcpXtls to proto.txt"
 
 		else
 			print_error "Can't detect your configureation"
@@ -1785,8 +1960,9 @@ function xray_setup_menu() {
 	echo -e "==========  TROJAN  =========="
 	echo -e "${Green}10. Trojan + TCP + TLS${Color_Off}"
 	echo -e "${Green}11. Trojan + WS + TLS${Color_Off}"
+	echo -e "${Green}12. Trojan + TCP + XTLS ${Red}(NOT Tested)${Color_Off}"
 	echo -e "=============================="
-	echo -e "${Yellow}12. Exit${Color_Off}\n"
+	echo -e "${Yellow}13. Exit${Color_Off}\n"
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
 	1)
@@ -1839,6 +2015,9 @@ function xray_setup_menu() {
 		trojan_ws_tls
 		;;
 	12)
+		trojan_tcp_xtls
+		;;
+	13)
 		exit 0
 		;;
 	*)
