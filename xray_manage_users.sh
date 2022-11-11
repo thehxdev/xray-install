@@ -254,7 +254,8 @@ function save_log_connections() {
 function show_connections() {
 
 	#if [[ ! -e "${xray_conf_dir}/clear_xray_log.sh" ]]; then
-	#	wget 
+	#	wget https://raw.githubusercontent.com/thehxdev/xray-install/main/clear_xray_log.sh -O ${xray_conf_dir}/clear_xray_log.sh
+
 	#fi
 
 	save_active_connections
