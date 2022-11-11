@@ -257,7 +257,11 @@ function show_connections() {
 	user_counter
 	read -rp "Enter user number: " user_number
 	chosen_user_connections=$(cat ${xray_conf_dir}/users_connection/${user_number}.txt)
-	echo -e "Chosen user connections count: ${chosen_user_connections}"
+	all_connections=${active_connections_count}
+	echo -e "====================================="
+	echo -e "${Yellow}Chosen user connections count: ${chosen_user_connections}${Color_Off}"
+	echo -e "${Cyan}All active connections count: ${chosen_user_connections}${Color_Off}"
+	echo -e "====================================="
 }
 
 clear
@@ -265,7 +269,7 @@ clear
 echo -e "${Green}1) get users info${Color_Off}"
 echo -e "${Green}2) add new user${Color_Off}"
 echo -e "${Red}3) delete user${Color_Off}"
-echo -e "${Red}4) Show each user's connections count${Color_Off}"
+echo -e "${Blue}4) Show each user's connections count${Color_Off}"
 echo -e "${Cyan}5) exit\n${Color_Off}"
 
 read -rp "Enter menu Number: " menu_number
