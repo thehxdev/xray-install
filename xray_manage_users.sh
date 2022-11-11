@@ -310,7 +310,7 @@ case $menu_number in
 4)
 	show_connections
 	;;
-4)
+5)
 	exit 0
 	;;
 *)
