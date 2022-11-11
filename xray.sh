@@ -1484,7 +1484,8 @@ function get_current_protocol() {
 function make_backup() {
 	if [ ! -e ${backup_dir} ]; then
 		mkdir ${backup_dir} >/dev/null 2>&1
-		judge "make bakup directory" else
+		judge "make bakup directory" 
+	else
 		print_ok "backup directory exist!"
 		rm -rf /root/old_xray_backups/*
 		judge "make old_xray_backups directory empty"
@@ -1510,7 +1511,7 @@ function make_backup() {
 
 	if [ -e "/etc/nginx" ]; then
 		WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-		WEBSOCKET_PATH_IN_NGINX=$(grep ${WEBSOCKET_PATH} ${nginx_conf})
+		WEBSOCKET_PATH_IN_NGINX=$(grep -oq ${WEBSOCKET_PATH} ${nginx_conf})
 		if [[ -n ${WEBSOCKET_PATH} && -n ${WEBSOCKET_PATH_IN_NGINX} ]]; then
 			if [[ ${WEBSOCKET_PATH} == ${WEBSOCKET_PATH_IN_NGINX} ]]; then
 				cp -r /etc/nginx/ ${backup_dir}
