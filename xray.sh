@@ -1684,7 +1684,7 @@ function read_current_config() {
 		echo -e "========================================="
 		echo -e "Users Count: ${current_users_count}"
 		if [[ ${current_port} == "10000" ]]; then
-			if grep "127.0.0.1" ${config_path}; then
+			if grep -q "127.0.0.1" ${config_path}; then
 				echo -e "Port: 443 (Nginx)"
 			else
 				echo -e "Port: ${current_port}"
