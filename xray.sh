@@ -1557,7 +1557,7 @@ function restore_backup() {
 	fi
 
 	if [[ -e "/root/xray_backup" ]]; then
-		mv /root/xray_backup /root/xray_backup_old
+		mv /root/xray_backup /root/old_xray_backups
 		judge "rename old backup dir to xray_backup_old"
 		mkdir /root/xray_backup >/dev/null 2>&1
 		judge "create new xray_backup"
