@@ -1941,7 +1941,7 @@ function get_ssl_certificate() {
 	ip_check
 	domain_check
 
-	if [ ! -e "/usr/local/bin/xray" && ! -e "${xray_conf_dir}" ]; then
+	if [[ ! -e "/usr/local/bin/xray" && ! -e "${xray_conf_dir}" ]]; then
 		xray_install
 	else
 		print_ok "xray is already installed"
