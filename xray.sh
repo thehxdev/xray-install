@@ -1965,23 +1965,23 @@ function get_ssl_certificate() {
 # ===================================== #
 function xray_setup_menu() {
 	clear
-	echo -e "========  ULTIMATE  ========="
+	echo -e "===================  ULTIMATE  ===================="
 	echo -e "${Blue}1. Ultimate Configuration (All Protocols + XTLS/TLS) ${Yellow}(Single User)${Color_Off}"
-	echo -e "==========  VLESS  =========="
+	echo -e "====================  VLESS  ======================"
 	echo -e "${Green}2. VLESS + WS + TLS${Color_Off}"
 	echo -e "${Green}3. VLESS + TCP + TLS${Color_Off}"
-	echo -e "==========  VMESS  =========="
+	echo -e "====================  VMESS  ======================"
 	echo -e "${Green}4. VMESS + WS ${Red}(NOT Recommended - Low Security)${Color_Off}"
 	echo -e "${Green}5. VMESS + WS + TLS${Color_Off}"
 	echo -e "${Green}6. VMESS + WS + Nginx (No TLS)${Color_Off}"
 	echo -e "${Green}7. VMESS + WS + Nginx (TLS)${Color_Off}"
 	echo -e "${Green}8. VMESS + TCP ${Red}(NOT Recommended - Low Security)${Color_Off}"
 	echo -e "${Green}9. VMESS + TCP + TLS${Color_Off}"
-	echo -e "==========  TROJAN  =========="
+	echo -e "====================  TROJAN  ====================="
 	echo -e "${Green}10. Trojan + TCP + TLS${Color_Off}"
 	echo -e "${Green}11. Trojan + WS + TLS${Color_Off}"
-	echo -e "${Green}12. Trojan + TCP + XTLS ${Red}(NOT Tested)${Color_Off}"
-	echo -e "=============================="
+	echo -e "${Green}12. Trojan + TCP + XTLS${Color_Off}"
+	echo -e "===================================================="
 	echo -e "${Yellow}13. Exit${Color_Off}\n"
 	read -rp "Enter an Option: " menu_num
 	case $menu_num in
@@ -2048,7 +2048,7 @@ function xray_setup_menu() {
 
 function forwarding_menu() {
 	clear
-	echo -e "========== Forwarding =========="
+	echo -e "=================== Forwarding ==================="
 	echo -e "${Green}1. Send Golang and Gost to domestic relay${Color_Off}"
 	echo -e "${Green}2. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
 	echo -e "${Green}3. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
@@ -2122,9 +2122,10 @@ function xray_and_vps_settings() {
 
 function user_management_and_backup_menu() {
 	clear
-	echo -e "========== User Management and Backup =========="
+	echo -e "=============== User Management ================"
 	echo -e "${Cyan}1. Get Users Configuration Link${Color_Off}"
 	echo -e "${Blue}2. User Management System${Color_Off}"
+	echo -e "=================== Backup ====================="
 	echo -e "${Green}3. Make Backup${Color_Off}"
 	echo -e "${Green}4. Restore existing backup${Color_Off}"
 	echo -e "${Yellow}5. Exit${Color_Off}\n"
