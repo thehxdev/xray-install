@@ -49,6 +49,7 @@ function print_error() {
     echo -e "${ERROR} $1 ${Color_Off}"
 }
 
+#print INFO
 function print_info() {
     echo -e "${INFO} $1 ${Color_Off}"
 }
@@ -141,8 +142,8 @@ function install_deps() {
     installit lsof tar
     judge "Install lsof tar"
 
-    installit cron
-    judge "install crontab"
+    installit cron htop
+    judge "install crontab htop"
 
     touch /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
     systemctl start cron && systemctl enable cron
@@ -162,10 +163,6 @@ function install_deps() {
 
     installit jq
     judge "install jq"
-    #if ! command -v jq >/dev/null 2>&1; then
-    #	wget -P /usr/bin https://raw.githubusercontent.com/wulabing/Xray_onekey/main/binary/jq && chmod +x /usr/bin/jq
-    #	judge "install jq"
-    #fi
 
     mkdir /usr/local/bin >/dev/null 2>&1
 }
