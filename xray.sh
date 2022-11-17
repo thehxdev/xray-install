@@ -2049,7 +2049,7 @@ function forwarding_menu() {
     echo -e "${Green}1. Send Golang and Gost to domestic relay${Color_Off}"
     echo -e "${Green}2. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
     echo -e "${Green}3. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-    echo -e "${Green}4. Install and configure Xray Dokodemo-door${Cyan}(Run on domestic relay)${Color_Off}"
+    echo -e "${Green}4. Install and configure Xray Dokodemo-door ${Cyan}(Run on domestic relay)${Color_Off}"
     echo -e "${Yellow}5. Exit${Color_Off}\n"
     read -rp "Enter an Option: " menu_num
     case $menu_num in
