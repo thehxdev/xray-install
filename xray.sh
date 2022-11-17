@@ -1715,7 +1715,7 @@ function make_backup() {
             print_info "Nginx Backup Skipped!"
         fi
     else
-        print_info "nginx configs not found or not installed. No Problem!"
+        print_info "nginx config files not found or not installed. No Problem!"
     fi
 
     if [[ -e "/ssl" ]]; then
@@ -2130,8 +2130,6 @@ function user_management_and_backup_menu() {
     case $menu_num in
     1)
         get_config_link
-        #print_error "This Future Is NOT Ready Yet."
-        #exit 0
         ;;
     2)
         if ! command -v jq; then
