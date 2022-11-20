@@ -2135,7 +2135,7 @@ function user_management_and_backup_menu() {
         if ! command -v jq; then
             apt update && apt install jq
         fi
-        bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray_manage_users.sh)"
+        bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/manage_xray_users.sh)"
         ;;
     3)
         make_backup
