@@ -17,6 +17,7 @@ config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
 users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
 access_log_path="/var/log/xray/access.log"
+users_expiry_date_file="/usr/local/etc/xray/users_expiry_date.txt"
 
 OK="${Green}[OK]"
 ERROR="${Red}[ERROR]"
@@ -192,13 +193,6 @@ function first_run() {
         xray_tmp_config_file_check_and_use
     fi
 
-    #if grep -E -o "trojan" ${config_path}; then
-    #	print_error "Trojan is single user"
-    #	exit 1
-    #else
-    #	print_ok "server config is not trojan!"
-    #fi
-
     if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
         print_error "users_count.txt not found!"
         touch ${users_count_file}
@@ -210,6 +204,106 @@ function first_run() {
     else
         print_ok "rquired files exist"
     fi
+}
+
+function make_users_expiry_date_file() {
+    if [[ ! -e "${users_expiry_date_file}" ]]; then
+        touch ${users_expiry_date_file}
+        judge "Create users expiry date file"
+    else
+        print_ok "Users expiry date file exists"
+    fi
+}
+
+function add_users_to_users_expiry_date_file() {
+    make_users_expiry_date_file
+    user_counter
+
+    echo -e "${Blue}Add User Expiry Date${Color_Off}\n"
+
+    read -rp "Enter User Number: " user_number
+    user_name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${user_number}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
+
+    if grep -q "${user_name}" ${users_expiry_date_file}; then
+        print_info "Chosen user Already has an expiry date. Do you want to update user's settings?"
+        read -rp "Enter Your Choice [y/n]: " update_user_choice
+        case $update_user_choice in
+        [yY][eE][sS] | [yY])
+            sed -i "/^${user_name}/d" ${users_expiry_date_file}
+            judge "Remove existing settings for user ${user_name}"
+            ;;
+        *)
+            print_info "Ok! No changes will take effect!"
+            exit 0
+            ;;
+        esac
+    fi
+
+    read -rp "Enter Expiry Date (example: 2023.01.15): " user_expiry_date
+    if [[ ! ${user_expiry_date} =~ [0-9]{4}\.[0-9]{2}\.[0-9]{2} ]]; then
+       print_error "Unsupported date format." 
+       print_info "Opration failed. run script again!"
+       print_info "Your Changes not effected"
+       exit 1
+    fi
+
+    today_date=$(date +%Y%m%d)
+    user_enterd_date=$(echo -e "${user_expiry_date}" | tr -d ".")
+    if [[ "${user_enterd_date}" -lt "${today_date}" ]]; then
+        print_error "You entered a date from the past!"
+        print_info "Today: $(date +%Y.%m.%d)"
+        exit 1
+    fi
+
+    echo -e "${user_name}\t${user_expiry_date}" >> ${users_expiry_date_file}
+    judge "Add ${user_name} to users expiry date file"
+    print_info "File location ${users_expiry_date_file}"
+}
+
+function print_users_expiry_date_file() {
+    if [[ ! -e "${users_expiry_date_file}" ]]; then
+        print_error "You not defined users"
+        exit 1
+    fi
+
+    file_lines_count=$(cat ${users_expiry_date_file} | wc -l)
+
+    for ((i = 0; i < ${file_lines_count}; i++)); do
+        current_user=$(sed -n "$((i + 1))p" ${users_expiry_date_file})
+        expiry_date=$(echo -e "${current_user}" | grep -Eo "[0-9]{4}\.[0-9]{2}\.[0-9]{2}")
+        expiry_date_num=$(echo -e "${current_user}" | grep -Eo "[0-9]{4}\.[0-9]{2}\.[0-9]{2}" | tr -d ".")
+        current_date=$(date +%Y%m%d)
+
+        if [[ "${expiry_date_num}" -gt "${current_date}" ]]; then
+            echo -e "  ${i}) ${current_user} ${Green}(Not Expired)${Color_Off}"
+        else
+            echo -e "  ${i}) ${current_user} ${Red}(Expired)${Color_Off}"
+        fi
+    done
+    echo -e ""
+}
+
+function users_exp_menu() {
+    clear
+
+    echo -e "================== Date =================="
+    echo -e "${Green}1) Add Expiry date for a user ${Color_Off}"
+    echo -e "${Green}2) Print Users Info ${Color_Off}"
+    echo -e ""
+
+    read -rp "Enter An Option: " date_menu_number
+    case $date_menu_number in
+        1)
+            add_users_to_users_expiry_date_file
+            ;;
+        2)
+            print_users_expiry_date_file
+            ;;
+        *)
+            print_error "Invalid Opiton. Run script again!"
+            exit 1
+            ;;
+    esac
 }
 
 #function clear_xray_log() {
@@ -286,7 +380,8 @@ clear
 
 echo -e "${Green}1) get users info${Color_Off}"
 echo -e "${Green}2) add new user${Color_Off}"
-echo -e "${Red}3) delete user${Color_Off}"
+echo -e "${Green}3) Add Expiry Date For Each User${Color_Off}"
+echo -e "${Red}4) delete user${Color_Off}"
 #echo -e "${Blue}4) Show each user's connections count${Color_Off}"
 echo -e "${Cyan}5) exit\n${Color_Off}"
 
@@ -306,6 +401,9 @@ case $menu_number in
     systemctl restart xray
     ;;
 3)
+    users_exp_menu
+    ;;
+4)
     echo -e ""
     first_run
     delete_user
