@@ -306,83 +306,12 @@ function users_exp_menu() {
     esac
 }
 
-#function clear_xray_log() {
-#    if [[ -e ${access_log_path} ]]; then
-#        echo "" > ${access_log_path}
-#    else
-#        print_error "can't find access.log file"
-#        exit 1
-#    fi
-#}
-
-#function save_active_connections() {
-#    #ss -tnp | grep "xray" | awk '{print $5}' | grep "\[::ffff" | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq > ${xray_conf_dir}/active_connections.txt
-#    active_connections_count=$(ss -tnp | grep "xray" | awk '{print $5}' | grep "\[::ffff" | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq | wc -l)
-#}
-
-#function save_log_connections() {
-#    users_count=$(cat ${users_count_file})
-#
-#    if [[ -e ${users_number_in_config_file} ]];then
-#        rm -rf ${users_number_in_config_file}
-#        judge "remove old user_number file"
-#        touch ${users_number_in_config_file}
-#        judge "create new user_number file"
-#    fi
-#
-#    cat ${config_path} | grep "email" | grep -Eo "[1-9]{1,3}@" | tr -d "@" | xargs -I INPUT echo INPUT >> ${users_number_in_config_file}
-#    judge "write users in users_number file"
-#
-#    if [ ! -e "${xray_conf_dir}/users_connection" ]; then
-#        print_info "Can't find users_connection directory. Making it..."
-#        mkdir ${xray_conf_dir}/users_connection >/dev/null 2>&1
-#        judge "make users_connection directory"
-#    fi
-#
-#    for ((i = 0; i < ${users_count}; i++)); do
-#        config_i=$(($i + 1))
-#        current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
-#        name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
-#        current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
-#        #cat ${access_log_path} | grep "${name}" | awk '{print $3}' | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq | wc -l > ${xray_conf_dir}/users_connection/${name}.txt
-#        cat ${access_log_path} | grep "${name}" | awk '{print $3}' | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq | wc -l > ${xray_conf_dir}/users_connection/${i}.txt
-#    done
-#    clear_xray_log
-#}
-
-#function show_connections() {
-#
-#    if [[ ! -e "${xray_conf_dir}/clear_xray_log.sh" ]]; then
-#        wget https://raw.githubusercontent.com/thehxdev/xray-install/main/clear_xray_log.sh -O ${xray_conf_dir}/clear_xray_log.sh
-#        judge "download clear_xray_log.sh file"
-#        chmod +x ${xray_conf_dir}/clear_xray_log.sh
-#        if [[ ! -e "/usr/lib/systemd/system/clearXrayLog.service" ]]; then
-#            wget https://raw.githubusercontent.com/thehxdev/xray-install/main/systemd/clearXrayLog.service -O /usr/lib/systemd/system/clearXrayLog.service
-#            judge "download clearXrayLog service file"
-#            systemctl enable --now clearXrayLog.service >/dev/null 2>&1
-#            judge "start and enable clear_xray_log service"
-#        fi
-#    fi
-#
-#    save_active_connections
-#    save_log_connections
-#    user_counter
-#    read -rp "Enter user number: " user_number
-#    chosen_user_connections=$(cat ${xray_conf_dir}/users_connection/${user_number}.txt)
-#    all_connections=${active_connections_count}
-#    echo -e "====================================="
-#    echo -e "${Yellow}Chosen user connections count: ${chosen_user_connections}${Color_Off}"
-#    echo -e "${Cyan}All active connections count: ${chosen_user_connections}${Color_Off}"
-#    echo -e "====================================="
-#}
-
 clear
 
 echo -e "${Green}1) get users info${Color_Off}"
 echo -e "${Green}2) add new user${Color_Off}"
 echo -e "${Green}3) Add Expiry Date For Each User${Color_Off}"
 echo -e "${Red}4) delete user${Color_Off}"
-#echo -e "${Blue}4) Show each user's connections count${Color_Off}"
 echo -e "${Cyan}5) exit\n${Color_Off}"
 
 read -rp "Enter menu Number: " menu_number
