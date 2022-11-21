@@ -318,6 +318,7 @@ function users_exp_menu() {
         4)
             print_ok "Exit"
             exit 0
+            ;;
         *)
             print_error "Invalid Opiton. Run script again!"
             exit 1
