@@ -290,7 +290,7 @@ function delete_user_date() {
 
     read -rp "Enter user's number: " user_number
     chosen_user=$(sed -n "${user_number}p" ${users_expiry_date_file})
-    sed -i "/^${chosen_user}/d" ${users_expiry_date_file}
+    sed -ibak "/^$((chosen_user + 1))/d" ${users_expiry_date_file}
     judge "Remove user date limitation"
 }
 
@@ -301,7 +301,7 @@ function users_exp_menu() {
     echo -e "${Green}1) Add Expiry date for a user ${Color_Off}"
     echo -e "${Green}2) Print Users Info ${Color_Off}"
     echo -e "${Green}3) Delete a user's date limitation ${Color_Off}"
-    echo -e "${Yellow}4) Delete a user's date limitation ${Color_Off}"
+    echo -e "${Yellow}4) Exit${Color_Off}"
     echo -e ""
 
     read -rp "Enter An Option: " date_menu_number
