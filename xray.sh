@@ -18,6 +18,7 @@ config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
 users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
 access_log_path="/var/log/xray/access.log"
+users_expiry_date_file="/usr/local/etc/xray/users_expiry_date.txt"
 proto_file="/usr/local/etc/xray/proto.txt"
 backup_dir="/root/xray_backup"
 website_dir="/var/www/html" 
@@ -1689,6 +1690,13 @@ function make_backup() {
         print_info "No SSL certificate found for xray. No problem!"
     fi
 
+    if [[ -e "${users_expiry_date_file}" ]]; then
+        cp -r ${users_expiry_date_file} ${backup_dir}
+        judge "Copy users expiry date file"
+    else
+        print_info "Users expiry date file not found! Skipping..."
+    fi
+
     if ! command -v gzip; then
         installit gzip tar
     else
@@ -1780,6 +1788,14 @@ function restore_backup() {
             cp -r ${backup_dir}/ssl /
             judge "restore SSL certificates for xray"
         fi
+
+        if [[ -e "${backup_dir}/users_expiry_date.txt" ]]; then
+            cp -r ${backup_dir}/${users_expiry_date_file} ${xray_conf_dir}/
+            judge "Restore users expiry date file"
+        else
+            print_info "Users expiry date file not found! Skipping..."
+        fi
+
         print_ok "Bakup restore Finished"
     fi
 }
