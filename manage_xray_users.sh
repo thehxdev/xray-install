@@ -264,7 +264,7 @@ function add_users_to_users_expiry_date_file() {
 
 function print_users_expiry_date_file() {
     if [[ ! -e "${users_expiry_date_file}" ]]; then
-        print_error "You not defined users"
+        print_error "You're not defined users"
         exit 1
     fi
 
@@ -285,12 +285,23 @@ function print_users_expiry_date_file() {
     echo -e ""
 }
 
+function delete_user_date() {
+    print_users_expiry_date_file
+
+    read -rp "Enter user's number: " user_number
+    chosen_user=$(sed -n "${user_number}p" ${users_expiry_date_file})
+    sed -i "/^${chosen_user}/d" ${users_expiry_date_file}
+    judge "Remove user date limitation"
+}
+
 function users_exp_menu() {
     clear
 
     echo -e "================== Date =================="
     echo -e "${Green}1) Add Expiry date for a user ${Color_Off}"
     echo -e "${Green}2) Print Users Info ${Color_Off}"
+    echo -e "${Green}3) Delete a user's date limitation ${Color_Off}"
+    echo -e "${Yellow}4) Delete a user's date limitation ${Color_Off}"
     echo -e ""
 
     read -rp "Enter An Option: " date_menu_number
@@ -301,6 +312,12 @@ function users_exp_menu() {
         2)
             print_users_expiry_date_file
             ;;
+        3)
+            delete_user_date
+            ;;
+        4)
+            print_ok "Exit"
+            exit 0
         *)
             print_error "Invalid Opiton. Run script again!"
             exit 1
