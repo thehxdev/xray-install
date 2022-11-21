@@ -289,8 +289,8 @@ function delete_user_date() {
     print_users_expiry_date_file
 
     read -rp "Enter user's number: " user_number
-    chosen_user=$(sed -n "${user_number}p" ${users_expiry_date_file})
-    sed -ibak "/^$((chosen_user + 1))/d" ${users_expiry_date_file}
+    chosen_user=$(sed -n "$((user_numberp + 1))p" ${users_expiry_date_file})
+    sed -ibak "/^${chosen_user}/d" ${users_expiry_date_file}
     judge "Remove user date limitation"
 }
 
