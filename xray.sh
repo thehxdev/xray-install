@@ -278,28 +278,6 @@ function restart_nginx(){
     judge "Nginx restart"
 }
 
-#function conf_nginx_notls() {
-#    rm -rf ${nginx_conf} && wget -O ${nginx_conf} https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample.conf
-#	judge "nginx config download"
-#
-#	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-#	judge "Nginx config modification"
-#
-#    systemctl enable nginx
-#    systemctl restart nginx
-#}
-#
-#function conf_nginx_tls() {
-#	rm -rf ${nginx_conf} && wget -O ${nginx_conf} https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_default_sample_tls.conf
-#	judge "nginx config download"
-#
-#	sed -i "s/YOUR_DOMAIN/${domain}/g" ${nginx_conf}
-#	judge "Nginx config modification"
-#
-#	systemctl enable nginx
-#	systemctl restart nginx
-#}
-
 function configure_nginx_reverse_proxy_tls() {
     rm -rf ${nginx_conf} && wget -O ${nginx_conf} https://raw.githubusercontent.com/thehxdev/xray-examples/main/nginx/nginx_reverse_proxy_tls.conf
     judge "Nginx config Download"
@@ -320,11 +298,6 @@ function configure_nginx_reverse_proxy_notls() {
     systemctl restart nginx
     judge "nginx restart"
 }
-
-#function nginx_ssl_configuraion() {
-#	sed -i "s|CERT_PATH|/ssl/xray.crt|g" ${nginx_conf}
-#	sed -i "s|KEY_PATH|/ssl/xray.key|g" ${nginx_conf}
-#}
 
 function add_wsPath_to_nginx() {
     sed -i "s.wsPATH.${WS_PATH}.g" ${nginx_conf}
@@ -351,52 +324,43 @@ function send_go_and_gost() {
     judge "send Gost to domestic relay"
 }
 
-function install_gost_and_go_notls() {
-    read -rp "Foreign server IP:" foreign_server_ip
-    rm -rf /usr/local/go 
-    tar -C /usr/local -xzf go${go_version}.linux-amd64.tar.gz
-    judge "install Golang"
+function install_gost_and_go() {
+    if [[ -e "/usr/local/go" ]]; then
+        rm -rf /usr/local/go 
+        if [[ -e "/root/go${go_version}.linux-amd64.tar.gz" ]]; then
+            tar -C /usr/local -xzf go${go_version}.linux-amd64.tar.gz
+            judge "install Golang"
+        else
+            print_error "Can't find golang archive file"
+            exit 1
+        fi
+    else
+        print_ok "Golang Already installed"
+    fi
 
-    gunzip gost-linux-amd64-2.11.4.gz
-    judge "Gost extract"
-    mv gost-linux-amd64-2.11.4 /usr/local/bin/gost
-    judge "move Gost"
-    chmod +x /usr/local/bin/gost
-    judge "Make Gost executable"
-
-    cat << EOF > /usr/lib/systemd/system/gost.service
-[Unit]
-Description=GO Simple Tunnel
-After=network.target
-Wants=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/gost -L=tcp://:80/$foreign_server_ip:80
-
-[Install]
-WantedBy=multi-user.target
-
-EOF
-
-    judge "adding systemd unit for gost"
-
-    systemctl enable --now gost.service
-    judge "gost service start"
+    if [[ ! -e "/usr/local/bin/gost" ]] ;then 
+        if [[ -e "gost-linux-amd64-2.11.4.gz" ]]; then
+            gunzip gost-linux-amd64-2.11.4.gz
+            judge "Gost extract"
+            mv gost-linux-amd64-2.11.4 /usr/local/bin/gost
+            judge "move Gost"
+            chmod +x /usr/local/bin/gost
+            judge "Make Gost executable"
+        else
+            print_error "Can't find golang archive file"
+            exit 1
+        fi
+    else
+        print_ok "Gost is installed"
+    fi
 }
 
-function install_gost_and_go_tls() {
-    read -rp "Foreign server IP:" foreign_server_ip
-    rm -rf /usr/local/go 
-    tar -C /usr/local -xzf go${go_version}.linux-amd64.tar.gz
-    judge "install Golang"
+function configure_gost_and_go() {
+    install_gost_and_go
 
-    gunzip gost-linux-amd64-2.11.4.gz
-    judge "Gost extract"
-    mv gost-linux-amd64-2.11.4 /usr/local/bin/gost
-    judge "move Gost"
-    chmod +x /usr/local/bin/gost
-    judge "Make Gost executable"
+    read -rp "Foreign server IP:" foreign_server_ip
+    read -rp "Foreign server Port:" foreign_server_port
+    read -rp "Listening Port:" listening_port
 
     cat << EOF > /usr/lib/systemd/system/gost.service
 [Unit]
@@ -406,7 +370,7 @@ Wants=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/gost -L=tcp://:443/$foreign_server_ip:443
+ExecStart=/usr/local/bin/gost -L=tcp://:${listening_port}/$foreign_server_ip:${foreign_server_port}
 
 [Install]
 WantedBy=multi-user.target
@@ -417,6 +381,9 @@ EOF
 
     systemctl enable --now gost.service
     judge "gost service start"
+
+    echo -e "${Blue}Listening Port = ${Green}${listening_port}${Color_Off}"
+    echo -e "${Blue}Forwarding incoming traffic to ${Green}${foreign_server_ip}:${foreign_server_port}${Color_Off}"
 }
 
 function xray_install() {
@@ -424,9 +391,6 @@ function xray_install() {
     curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install
     judge "Xray Installation"
 
-    # Import link for Xray generation
-    #echo $domain >/usr/local/domain.txt
-    #judge "Save Domain"
     groupadd nobody
     gpasswd -a nobody nobody
     judge "add nobody user to nobody group"
@@ -2047,25 +2011,21 @@ function forwarding_menu() {
     clear
     echo -e "=================== Forwarding ==================="
     echo -e "${Green}1. Send Golang and Gost to domestic relay${Color_Off}"
-    echo -e "${Green}2. Install and configure Gost (TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-    echo -e "${Green}3. Install and configure Gost (No TLS) ${Cyan}(Run on domestic relay)${Color_Off}"
-    echo -e "${Green}4. Install and configure Xray Dokodemo-door ${Cyan}(Run on domestic relay)${Color_Off}"
-    echo -e "${Yellow}5. Exit${Color_Off}\n"
+    echo -e "${Green}2. Install and configure Gost ${Cyan}(Run on domestic relay)${Color_Off}"
+    echo -e "${Green}3. Install and configure Xray Dokodemo-door ${Cyan}(Run on domestic relay)${Color_Off}"
+    echo -e "${Yellow}4. Exit${Color_Off}\n"
     read -rp "Enter an Option: " menu_num
     case $menu_num in
     1)
         send_go_and_gost
         ;;
     2)
-        install_gost_and_go_tls
+        configure_gost_and_go
         ;;
     3)
-        install_gost_and_go_notls
-        ;;
-    4)
         dokodemo_door_setup
         ;;
-    5)
+    4)
         exit 0
         ;;
     *)
