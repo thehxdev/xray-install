@@ -239,6 +239,8 @@ function add_users_to_users_expiry_date_file() {
         esac
     fi
 
+    today_date_formated=$(date +%Y.%m.%d)
+    echo -e "Today = ${today_date_formated}\n"
     read -rp "Enter Expiry Date (example: 2023.01.15): " user_expiry_date
     if [[ ! ${user_expiry_date} =~ [0-9]{4}\.[0-9]{2}\.[0-9]{2} ]]; then
        print_error "Unsupported date format." 
