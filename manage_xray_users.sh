@@ -89,7 +89,8 @@ function add_new_user() {
     cp ${config_path} ${xray_conf_dir}/config.json.bak
 
     last_user_num=$(wc -l ${users_number_in_config_file} | grep -Eo "[1-9]{1,3}" | xargs -I INPUT sed -n "INPUTp" ${users_number_in_config_file})
-    new_user_num=$(($last_user_num + 1))
+    last_user_num_inNum=$((last_user_num))
+    new_user_num=$((${last_user_num_inNum} + 1))
 
     if grep -q "vmess" ${config_path} || grep -q "vless" ${config_path}; then
         [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
