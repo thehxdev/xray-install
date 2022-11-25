@@ -2,14 +2,14 @@
 
 # Colors
 Color_Off='\033[0m'
-#Black='\033[0;30m' 
+Black='\033[0;30m' 
 Red='\033[0;31m'   
 Green='\033[0;32m' 
 Yellow='\033[0;33m'
 Blue='\033[0;34m'  
-#Purple='\033[0;35m'
+Purple='\033[0;35m'
 Cyan='\033[0;36m'  
-#White='\033[0;37m' 
+White='\033[0;37m' 
 
 # Variables 
 github_branch="main"
@@ -24,7 +24,6 @@ backup_dir="/root/xray_backup"
 website_dir="/var/www/html" 
 #xray_access_log="/var/log/xray/access.log"
 #xray_error_log="/var/log/xray/error.log"
-#cert_dir="/root/.ssl"
 #domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
@@ -552,40 +551,31 @@ function xray_uninstall() {
     curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
     rm -rf $website_dir/*
 
-    print_ok "Do you want to Disable (Not uninstall) Nginx [y/n]?"
-    read -r disable_nginx
-    case $disable_nginx in
-    [yY][eE][sS] | [yY])
-        systemctl disable --now nginx.service
-        ;;
-    *) ;;
-    esac
-
-    print_ok "Do you want to uninstall Nginx [y/n]?"
-    read -r uninstall_nginx
-    case $uninstall_nginx in
-    [yY][eE][sS] | [yY])
-        rm -rf /var/www/html/*
-        systemctl disable --now nginx.service
-        apt purge nginx -y
-        ;;
-    *) ;;
-    esac
-
-    if [[ -f /root/.acme.sh/ ]]; then
-        print_ok "Uninstall acme [y/n]?"
-        read -r uninstall_acme
-        case $uninstall_acme in
+    if ! command -v nginx; then
+        print_info "Nginx is not installed"
+    else
+        print_info "Do you want to Disable (Not uninstall) Nginx (This will free 443 or 80 port) [y/n]?"
+        read -r disable_nginx
+        case $disable_nginx in
         [yY][eE][sS] | [yY])
-            "$HOME"/.acme.sh/acme.sh --uninstall
-            rm -rf /root/.acme.sh
-            rm -rf /root/.ssl/
+            systemctl disable --now nginx.service
+            ;;
+        *) ;;
+        esac
+
+        print_info "Do you want to uninstall Nginx [y/n]?"
+        read -r uninstall_nginx
+        case $uninstall_nginx in
+        [yY][eE][sS] | [yY])
+            rm -rf /var/www/html/*
+            systemctl disable --now nginx.service
+            apt purge nginx -y
             ;;
         *) ;;
         esac
     fi
 
-    print_ok "Uninstall certbot (This will remove SSL Cert files too)? [y/n]?"
+    print_info "Uninstall certbot (This will remove SSL Cert files too)? [y/n]?"
     read -r uninstall_certbot
     case $uninstall_certbot in
     [yY][eE][sS] | [yY])
@@ -597,15 +587,6 @@ function xray_uninstall() {
         ;;
     *) ;;
     esac
-
-    #print_ok "Remove SSL certificates? [y/n]?"
-    #read -r remove_ssl_certs
-    #case $remove_ssl_certs in 
-    #	[yY][eE][sS] | [yY])
-    #    rm -rf /ssl/
-    #	;;
-    #*) ;;
-    #esac
 
     print_ok "Uninstall complete"
     exit 0
