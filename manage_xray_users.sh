@@ -338,30 +338,34 @@ echo -e "${Cyan}5) exit\n${Color_Off}"
 read -rp "Enter menu Number: " menu_number
 
 case $menu_number in
-1)
-    echo -e ""
-    first_run
-    get_user_info
-    systemctl restart xray
-    ;;
-2)
-    echo -e ""
-    first_run
-    add_new_user
-    systemctl restart xray
-    ;;
-3)
-    users_exp_menu
-    ;;
-4)
-    echo -e ""
-    first_run
-    delete_user
-    systemctl restart xray
-    ;;
-*)
-    print_error "Invalid Option"
-    exit 1
-    ;;
+    1)
+        echo -e ""
+        first_run
+        get_user_info
+        systemctl restart xray
+        ;;
+    2)
+        echo -e ""
+        first_run
+        add_new_user
+        systemctl restart xray
+        ;;
+    3)
+        users_exp_menu
+        ;;
+    4)
+        echo -e ""
+        first_run
+        delete_user
+        systemctl restart xray
+        ;;
+    5)
+        print_ok "Exit"
+        exit 0
+        ;;
+    *)
+        print_error "Invalid Option"
+        exit 1
+        ;;
 esac
 
