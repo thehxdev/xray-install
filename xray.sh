@@ -164,7 +164,9 @@ function install_deps() {
     installit jq
     judge "install jq"
 
-    mkdir /usr/local/bin >/dev/null 2>&1
+    if [[ ! -e "/usr/local/bin" ]]; then
+        mkdir /usr/local/bin >/dev/null 2>&1
+    fi
 }
 
 function basic_optimization() {
