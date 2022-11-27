@@ -2,6 +2,16 @@
 
 Xray installation and configuraion script for **`Ubuntu`** and **`Debian`** servers.
 
+## Features
+
+- Automaticly install and configure [Xray-core](https://github.com/XTLS/Xray-core)
+- Check exit code of every command that executed!
+- User Management with unique UUID/Password for each user
+- VLess, VMess and Trojan Support
+- XTLS for VLess and Trojan Support 
+- VPS Basic settings for better experience
+- Enable TCP BBR with [teddysun script](https://github.com/teddysun/across/blob/master/bbr.sh)
+
 ## Install
 
 #### Install Dependencies
