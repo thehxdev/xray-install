@@ -177,14 +177,14 @@ function basic_optimization() {
 }
 
 function ip_check() {
-    local_ipv4=$(curl -s4m8 https://ip.gs)
-    local_ipv6=$(curl -s6m8 https://ip.gs)
+    local_ipv4=$(curl -s4m8 https://icanhazip.com)
+    local_ipv6=$(curl -s6m8 https://icanhazip.com)
     if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
         print_ok "Pure IPv6 server"
-        SERVER_IP=$(curl -s6m8 https://ip.gs)
+        SERVER_IP=$(curl -s6m8 https://icanhazip.com)
     else
-        print_ok "Server hase IPv4"
-        SERVER_IP=$(curl -s4m8 https://ip.gs)
+        print_ok "Server has IPv4"
+        SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     fi
 }
 
@@ -214,8 +214,8 @@ function domain_check() {
     #  wg-quick down wgcf >/dev/null 2>&1
     #  print_ok "wgcf-warp closed"
     #fi
-    local_ipv4=$(curl -s4m8 https://ip.gs)
-    local_ipv6=$(curl -s6m8 https://ip.gs)
+    local_ipv4=$(curl -s4m8 https://icanhazip.com)
+    local_ipv6=$(curl -s6m8 https://icanhazip.com)
     if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
         # Pure IPv6 VPS, automatically add DNS64 server for acme.sh to apply for certificate
         echo -e nameserver 2606:4700:4700::1111 > /etc/resolv.conf
@@ -677,7 +677,7 @@ function vless_ws_tls_link_gen() {
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
 
     qrencode -t ansiutf8 -l L vless://${server_link}
@@ -692,7 +692,7 @@ function users_vless_ws_tls_link_gen() {
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
 
     qrencode -t ansiutf8 -l L vless://${server_link}
@@ -778,7 +778,7 @@ function vmess_ws_link_gen() {
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
@@ -792,7 +792,7 @@ function users_vmess_ws_link_gen() {
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
@@ -827,7 +827,7 @@ function vmess_ws_tls_link_gen() {
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
@@ -842,7 +842,7 @@ function users_vmess_ws_tls_link_gen() {
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
@@ -877,7 +877,7 @@ function vmess_ws_nginx_link_gen() {
     read -rp "Choose config name: " config_name
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"80\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
@@ -890,7 +890,7 @@ function users_vmess_ws_nginx_link_gen() {
     read -rp "Choose config name: " config_name
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"80\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
@@ -927,7 +927,7 @@ function vmess_ws_nginx_tls_link_gen() {
     read -rp "Choose config name: " config_name
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -941,7 +941,7 @@ function users_vmess_ws_nginx_tls_link_gen() {
     read -rp "Choose config name: " config_name
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -984,7 +984,7 @@ function vmess_tcp_link_gen() {
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     #CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -999,7 +999,7 @@ function users_vmess_tcp_link_gen() {
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     #CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -1033,7 +1033,7 @@ function vmess_tcp_tls_link_gen() {
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -1048,7 +1048,7 @@ function users_vmess_tcp_tls_link_gen() {
     UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -1087,7 +1087,7 @@ function trojan_tcp_tls_link_gen() {
     #UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=tcp#$config_name")
@@ -1103,7 +1103,7 @@ function users_trojan_tcp_tls_link_gen() {
     #UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=tcp#$config_name")
@@ -1141,7 +1141,7 @@ function trojan_ws_tls_link_gen() {
     #UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
@@ -1157,7 +1157,7 @@ function users_trojan_ws_tls_link_gen() {
     #UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
@@ -1195,7 +1195,7 @@ function trojan_ws_tls() {
 function trojan_tcp_xtls_link_gen() {
     read -rp "Choose config name: " config_name
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=xtls&type=tcp&flow=xtls-rprx-direct&alpn=h2,http/1.1#$config_name")
@@ -1209,7 +1209,7 @@ function users_trojan_tcp_xtls_link_gen() {
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=xtls&type=tcp&flow=xtls-rprx-direct&alpn=h2,http/1.1#$config_name")
@@ -1220,7 +1220,7 @@ function users_trojan_tcp_xtls_link_gen() {
 
 function trojan_tcp_xtls_client_config() {
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
 
@@ -1281,7 +1281,7 @@ function users_trojan_tcp_xtls_client_config() {
     user_counter
     read -rp "Choose User: " user_number
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(curl -s4m8 https://ip.gs)
+    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
     name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${user_number}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
