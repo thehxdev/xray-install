@@ -731,7 +731,7 @@ function vless_tcp_tls_link_gen() {
     server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=tcp#$config_name")
 
     qrencode -t ansiutf8 -l L vless://${server_link}
-    echo -ne "${Green}VMESS Link: ${Yellow}vless://$server_link${Color_Off}\n"
+    echo -ne "${Green}VLess Link: ${Yellow}vless://$server_link${Color_Off}\n"
 }
 
 function users_vless_tcp_tls_link_gen() {
