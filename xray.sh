@@ -1049,7 +1049,7 @@ function users_vmess_tcp_tls_link_gen() {
     #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"/\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"http\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
     echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
