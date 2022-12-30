@@ -5,21 +5,24 @@ Xray installation and configuraion script for **`Ubuntu`** and **`Debian`** serv
 ## Features
 
 - Automaticly install and configure [Xray-core](https://github.com/XTLS/Xray-core)
-- Check exit code of every command that executed!
+- Check exit code of every command that executed (No more nonsense errors).
 - User Management with unique UUID/Password for each user
 - VLess, VMess and Trojan Support
 - XTLS for VLess and Trojan Support 
 - VPS Basic settings for better experience
 - Enable TCP BBR with [teddysun script](https://github.com/teddysun/across/blob/master/bbr.sh)
+- Saving backups and bundle them in .tar files for easy download.
 
 ## Install
 
 #### Install Dependencies
+
 ```bash
 apt update && apt install curl
 ```
 
 #### Run Script
+
 ```bash
 bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 ```
@@ -29,6 +32,9 @@ bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 **User Management added to main script!**
 
 ## Supported protocols
+
+- I suggest to use only configs that has **TLS**.
+- **UPDATE**: `http` header type added to `VMESS + TCP + TLS`
 
 1. [Ultimate Config (All Configs + XTLS)](https://github.com/thehxdev/xray-examples/blob/main/VLESS-TCP-XTLS-WHATEVER)
 1. [VLESS + WS + TLS](https://github.com/thehxdev/xray-examples/tree/main/VLESS-Websocket-TLS-s)
