@@ -2,6 +2,8 @@
 
 Xray installation and configuraion script for **`Ubuntu`** and **`Debian`** servers.
 
+**>> [چگونه هوشمندانه سوال بپرسیم و مشکلاتمان را مطرح کنیم](https://github.com/sergeantreacher/smart-question/blob/master/readme.md) <<**
+
 ## Features
 
 - Automaticly install and configure [Xray-core](https://github.com/XTLS/Xray-core)
