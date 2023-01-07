@@ -28,7 +28,7 @@ website_dir="/var/www/html"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
-go_version="1.19.3"
+go_version="1.19.4"
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
