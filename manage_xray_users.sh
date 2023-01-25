@@ -167,7 +167,7 @@ function delete_user() {
     echo "removed user code: ${removed_user_number}"
     sed -i "s/${removed_user_number}//g" ${users_number_in_config_file}
 
-    cat ${config_path} | jq 'del(.inbounds[0].settings.clients['${user_number}'])'>${xray_conf_dir}/config_tmp.json
+    cat ${config_path} | jq 'del(.inbounds[0].settings.clients['${user_number}'])' >${xray_conf_dir}/config_tmp.json
     xray_tmp_config_file_check_and_use
 
     new_users_count=$(($users_count - 1))
