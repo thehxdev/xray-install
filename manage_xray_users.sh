@@ -187,7 +187,7 @@ function first_run() {
     if grep -q -E -o "[1-9]{1,3}@" ${config_path} ; then
         print_ok "admin user found"
     else
-        cp ${config_path} ${xray_conf_dir}/config.json.bak1
+        cp ${config_path} ${xray_conf_dir}/config.json.bak
         judge "make backup file from config.json"
         cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",0,"email"];"1@admin")' >${xray_conf_dir}/config_tmp.json
         judge "initialize first user"
