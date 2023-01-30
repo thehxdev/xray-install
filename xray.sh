@@ -22,9 +22,6 @@ users_expiry_date_file="/usr/local/etc/xray/users_expiry_date.txt"
 proto_file="/usr/local/etc/xray/proto.txt"
 backup_dir="/root/xray_backup"
 website_dir="/var/www/html" 
-#xray_access_log="/var/log/xray/access.log"
-#xray_error_log="/var/log/xray/error.log"
-#domain_tmp_dir="/usr/local/etc/xray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
@@ -1153,7 +1150,6 @@ function users_trojan_ws_tls_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    #UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
     PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
