@@ -244,7 +244,7 @@ function print_users_expiry_date_file() {
     fi
 
     # file_lines_count=$(cat ${users_expiry_date_file} | wc -l)
-    file_lines_count=$((wc -l ${users_expiry_date_file} | cut -d " " -f 1))
+    file_lines_count=$(wc -l ${users_expiry_date_file} | cut -d " " -f 1)
 
     # for ((i = 0; i < ${file_lines_count}; i++)); do
     #     current_user=$(sed -n "$((i + 1))p" ${users_expiry_date_file})
