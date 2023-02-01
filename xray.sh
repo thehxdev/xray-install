@@ -547,48 +547,55 @@ function renew_certbot() {
 }
 
 function xray_uninstall() {
-    curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
-    rm -rf $website_dir/*
-
-    if ! command -v nginx; then
-        print_info "Nginx is not installed"
-    else
-        print_info "Do you want to Disable (Not uninstall) Nginx (This will free 443 or 80 port) [y/n]?"
-        read -r disable_nginx
-        case $disable_nginx in
-        [yY][eE][sS] | [yY])
-            systemctl disable --now nginx.service
-            ;;
-        *) ;;
-        esac
-
-        print_info "Do you want to uninstall Nginx [y/n]?"
-        read -r uninstall_nginx
-        case $uninstall_nginx in
-        [yY][eE][sS] | [yY])
-            rm -rf /var/www/html/*
-            systemctl disable --now nginx.service
-            apt purge nginx -y
-            ;;
-        *) ;;
-        esac
-    fi
-
-    print_info "Uninstall certbot (This will remove SSL Cert files too)? [y/n]?"
-    read -r uninstall_certbot
-    case $uninstall_certbot in
+    print_info "This Option will remove Xray-Core and all of it's configurations. Are you sure? [y/n]"
+    read -r uninstall_xray
+    case $uninstall_xray in
     [yY][eE][sS] | [yY])
-        apt purge certbot python3-certbot -y
-        rm -rf /etc/letsencrypt/
-        rm -rf /var/log/letsencrypt/
-        rm -rf /etc/systemd/system/*certbot*
-        rm -rf /ssl/
+        curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
+        rm -rf $website_dir/*
+
+        if ! command -v nginx; then
+            print_info "Nginx is not installed"
+        else
+            print_info "Do you want to Disable (Not uninstall) Nginx (This will free 443 or 80 port) [y/n]?"
+            read -r disable_nginx
+            case $disable_nginx in
+            [yY][eE][sS] | [yY])
+                systemctl disable --now nginx.service
+                ;;
+            *) ;;
+            esac
+
+            print_info "Do you want to uninstall Nginx [y/n]?"
+            read -r uninstall_nginx
+            case $uninstall_nginx in
+            [yY][eE][sS] | [yY])
+                rm -rf /var/www/html/*
+                systemctl disable --now nginx.service
+                apt purge nginx -y
+                ;;
+            *) ;;
+            esac
+        fi
+
+        print_info "Uninstall certbot (This will remove SSL Cert files too)? [y/n]?"
+        read -r uninstall_certbot
+        case $uninstall_certbot in
+        [yY][eE][sS] | [yY])
+            apt purge certbot python3-certbot -y
+            rm -rf /etc/letsencrypt/
+            rm -rf /var/log/letsencrypt/
+            rm -rf /etc/systemd/system/*certbot*
+            rm -rf /ssl/
+            ;;
+        *) ;;
+        esac
+
+        print_ok "Uninstall complete"
+        exit 0
         ;;
     *) ;;
     esac
-
-    print_ok "Uninstall complete"
-    exit 0
 }
 
 function restart_all() {
