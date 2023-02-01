@@ -249,7 +249,7 @@ function print_users_expiry_date_file() {
     # for ((i = 0; i < ${file_lines_count}; i++)); do
     #     current_user=$(sed -n "$((i + 1))p" ${users_expiry_date_file})
     for ((i = 1; i < ${file_lines_count}; i++)); do
-        current_user=$(sed -n "$(i)p" ${users_expiry_date_file})
+        current_user=$(sed -n "$((i))p" ${users_expiry_date_file})
         expiry_date=$(echo -e "${current_user}" | grep -Eo "[0-9]{4}\.[0-9]{2}\.[0-9]{2}")
         expiry_date_num=$(echo -e "${current_user}" | grep -Eo "[0-9]{4}\.[0-9]{2}\.[0-9]{2}" | tr -d ".")
         current_date=$(date +%Y%m%d)
