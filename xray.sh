@@ -640,27 +640,41 @@ function configure_user_management() {
     fi
 }
 
+# function user_counter() {
+#     configure_user_management
+#     users_count=$(cat ${users_count_file})
+# 
+#     if [[ -e ${users_number_in_config_file} ]];then
+#         rm -rf ${users_number_in_config_file}
+#         judge "remove old user_number file"
+#         touch ${users_number_in_config_file}
+#         judge "create new user_number file"
+#     fi
+# 
+#     cat ${config_path} | grep "email" | grep -Eo "[1-9]{1,3}" | xargs -I INPUT echo INPUT >> ${users_number_in_config_file}
+#     judge "write users in users_number file"
+#     echo -e "\nCurrent Users Count = ${users_count}"
+#     echo -e "Old Users:"
+#     for ((i = 0; i < ${users_count}; i++)); do
+#         config_i=$(($i + 1))
+#         current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
+#         name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
+#         current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
+#         echo -e "  ${i}) $name \t(e-n: ${current_user_number})"
+#     done
+#     echo -e ""
+# }
+
+
 function user_counter() {
-    configure_user_management
     users_count=$(cat ${users_count_file})
 
-    if [[ -e ${users_number_in_config_file} ]];then
-        rm -rf ${users_number_in_config_file}
-        judge "remove old user_number file"
-        touch ${users_number_in_config_file}
-        judge "create new user_number file"
-    fi
-
-    cat ${config_path} | grep "email" | grep -Eo "[1-9]{1,3}" | xargs -I INPUT echo INPUT >> ${users_number_in_config_file}
-    judge "write users in users_number file"
     echo -e "\nCurrent Users Count = ${users_count}"
     echo -e "Old Users:"
     for ((i = 0; i < ${users_count}; i++)); do
-        config_i=$(($i + 1))
-        current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
-        name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
+        name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"')
         current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
-        echo -e "  ${i}) $name \t(e-n: ${current_user_number})"
+        echo -e "  ${i}) $name"
     done
     echo -e ""
 }
