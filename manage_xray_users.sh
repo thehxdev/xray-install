@@ -197,7 +197,7 @@ function add_users_to_users_expiry_date_file() {
     echo -e "${Blue}Add User Expiry Date${Color_Off}\n"
 
     read -rp "Enter User Number: " user_number
-    user_name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${user_number}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
+    user_name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${user_number}].email | tr -d '"')
 
     if grep -q "${user_name}" ${users_expiry_date_file}; then
         print_info "Chosen user Already has an expiry date. Do you want to update user's settings?"
