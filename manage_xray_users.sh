@@ -2,20 +2,16 @@
 
 # Colors
 Color_Off='\033[0m'
-#Black='\033[0;30m' 
 Red='\033[0;31m'   
 Green='\033[0;32m' 
 Yellow='\033[0;33m'
 Blue='\033[0;34m'  
-#Purple='\033[0;35m'
 Cyan='\033[0;36m'  
-#White='\033[0;37m' 
 
 # Variables
 xray_conf_dir="/usr/local/etc/xray"
 config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
-# users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
 access_log_path="/var/log/xray/access.log"
 users_expiry_date_file="/usr/local/etc/xray/users_expiry_date.txt"
 
@@ -53,21 +49,9 @@ function judge() {
 function user_counter() {
     users_count=$(cat ${users_count_file})
 
-    # if [[ -e ${users_number_in_config_file} ]];then
-    #     rm -rf ${users_number_in_config_file}
-    #     judge "remove old user_number file"
-    #     touch ${users_number_in_config_file}
-    #     judge "create new user_number file"
-    # fi
-
-    # cat ${config_path} | grep "email" | grep -Eo "[1-9]{1,3}" | xargs -I INPUT echo INPUT >> ${users_number_in_config_file}
-    # judge "write users in users_number file"
     echo -e "\nCurrent Users Count = ${users_count}"
     echo -e "Old Users:"
     for ((i = 0; i < ${users_count}; i++)); do
-        # config_i=$(($i + 1))
-        # current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
-        # name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
         name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"')
         current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
         echo -e "  ${i}) $name"
@@ -88,10 +72,6 @@ function xray_tmp_config_file_check_and_use() {
 function add_new_user() {
     user_counter
     cp ${config_path} ${xray_conf_dir}/config.json.bak
-
-    # last_user_num=$(wc -l ${users_number_in_config_file} | grep -Eo "[1-9]{1,3}" | xargs -I INPUT sed -n "INPUTp" ${users_number_in_config_file})
-    # last_user_num_inNum=$((last_user_num))
-    # new_user_num=$((${last_user_num_inNum} + 1))
 
     if grep -q "vmess" ${config_path} || grep -q "vless" ${config_path}; then
         [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
@@ -164,10 +144,6 @@ function delete_user() {
 
     read -rp "Enter user number: " user_number
 
-    # removed_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${user_number}].email | grep -Eo "[1-9]{1,3}")
-    # echo "removed user code: ${removed_user_number}"
-    # sed -i "s/${removed_user_number}//g" ${users_number_in_config_file}
-
     cat ${config_path} | jq 'del(.inbounds[0].settings.clients['${user_number}'])' >${xray_conf_dir}/config_tmp.json
     xray_tmp_config_file_check_and_use
 
@@ -195,15 +171,11 @@ function first_run() {
         xray_tmp_config_file_check_and_use
     fi
 
-    # if [[ ! -e "${users_count_file}" && ! -e "${users_number_in_config_file}" ]]; then
     if [[ ! -e "${users_count_file}" ]]; then
         print_error "users_count.txt not found!"
         touch ${users_count_file}
         judge "create user count file"
         echo -e "1" > ${users_count_file}
-        # touch ${users_number_in_config_file}
-        # judge "create user number file"
-        # echo -e "1" > ${users_number_in_config_file}
     else
         print_ok "rquired files exist"
     fi
