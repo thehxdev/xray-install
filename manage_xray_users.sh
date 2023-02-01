@@ -232,7 +232,7 @@ function add_users_to_users_expiry_date_file() {
         exit 1
     fi
 
-    echo -e "${user_name}\t${user_expiry_date}" >> ${users_expiry_date_file}
+    echo -e "${user_name} ${user_expiry_date}" >> ${users_expiry_date_file}
     judge "Add ${user_name} to users expiry date file"
     print_info "File location ${users_expiry_date_file}"
 }
@@ -243,10 +243,13 @@ function print_users_expiry_date_file() {
         exit 1
     fi
 
-    file_lines_count=$(cat ${users_expiry_date_file} | wc -l)
+    # file_lines_count=$(cat ${users_expiry_date_file} | wc -l)
+    file_lines_count=$((wc -l ${users_expiry_date_file} | cut -d " " -f 1))
 
-    for ((i = 0; i < ${file_lines_count}; i++)); do
-        current_user=$(sed -n "$((i + 1))p" ${users_expiry_date_file})
+    # for ((i = 0; i < ${file_lines_count}; i++)); do
+    #     current_user=$(sed -n "$((i + 1))p" ${users_expiry_date_file})
+    for ((i = 1; i < ${file_lines_count}; i++)); do
+        current_user=$(sed -n "$(i)p" ${users_expiry_date_file})
         expiry_date=$(echo -e "${current_user}" | grep -Eo "[0-9]{4}\.[0-9]{2}\.[0-9]{2}")
         expiry_date_num=$(echo -e "${current_user}" | grep -Eo "[0-9]{4}\.[0-9]{2}\.[0-9]{2}" | tr -d ".")
         current_date=$(date +%Y%m%d)
