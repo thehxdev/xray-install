@@ -138,8 +138,8 @@ function delete_user() {
         print_info "Please create second user then try again."
         exit 1
     fi
-    user_counter
     cp ${config_path} ${xray_conf_dir}/config.json.bak
+    user_counter
     echo -e ""
 
     read -rp "Enter user number: " user_number
