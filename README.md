@@ -35,10 +35,12 @@ bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 
 ## Supported protocols
 
-- I suggest to use only configs that has **TLS**.
+- It's better to use **TLS** supported protocols.
 - **UPDATE**: `http` header type added to `VMESS + TCP + TLS`
+- Configs that has **Nginx**  option, will setup a fake website.
+- Protocols that support **Websocket (WS)** can be used with **CDN**.
 
-1. [Ultimate Config (All Configs + XTLS)](https://github.com/thehxdev/xray-examples/blob/main/VLESS-TCP-XTLS-WHATEVER)
+1. [Ultimate Config (All Configs + XTLS-direct)](https://github.com/thehxdev/xray-examples/blob/main/VLESS-TCP-XTLS-WHATEVER)
 1. [VLESS + WS + TLS](https://github.com/thehxdev/xray-examples/tree/main/VLESS-Websocket-TLS-s)
 1. [VLESS + TCP + TLS](https://github.com/thehxdev/xray-examples/tree/main/VLESS-TCP-TLS-Minimal-s)
 1. [VMESS + WS](https://github.com/thehxdev/xray-examples/tree/main/VMess-Websocket-s)
