@@ -13,7 +13,7 @@ Xray installation and configuraion script for **`Ubuntu`** and **`Debian`** serv
 - XTLS for VLess and Trojan Support 
 - VPS Basic settings for better experience
 - Enable TCP BBR with [teddysun script](https://github.com/teddysun/across/blob/master/bbr.sh)
-- Saving backups and bundle them in .tar files for easy download.
+- Saving backups and bundle them in `.tar.gz` files for easy download.
 
 ## Install
 
@@ -32,6 +32,7 @@ bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 ## User Management
 
 **User Management added to main script!**
+- **I changed user management system a little. If it not works in your server, Uninstall Xray and install it again.**
 
 ## Supported protocols
 
