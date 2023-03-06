@@ -2,14 +2,14 @@
 
 # Colors
 Color_Off='\033[0m'
-Black='\033[0;30m' 
-Red='\033[0;31m'   
-Green='\033[0;32m' 
+Black='\033[0;30m'
+Red='\033[0;31m'
+Green='\033[0;32m'
 Yellow='\033[0;33m'
-Blue='\033[0;34m'  
+Blue='\033[0;34m'
 Purple='\033[0;35m'
-Cyan='\033[0;36m'  
-White='\033[0;37m' 
+Cyan='\033[0;36m'
+White='\033[0;37m'
 
 # Variables 
 github_branch="main"
@@ -696,7 +696,8 @@ function vless_ws_tls_link_gen() {
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
-    server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+    # server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+    server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&encryption=none&type=ws&path=$WEBSOCKET_PATH&host=$CONFIG_DOMAIN#$config_name")
 
     qrencode -t ansiutf8 -l L vless://${server_link}
     echo -ne "${Green}VLESS Link: ${Yellow}vless://$server_link${Color_Off}\n"
@@ -711,7 +712,8 @@ function users_vless_ws_tls_link_gen() {
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
-    server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+    # server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+    server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&encryption=none&type=ws&path=$WEBSOCKET_PATH&host=$CONFIG_DOMAIN#$config_name")
 
     qrencode -t ansiutf8 -l L vless://${server_link}
     echo -ne "${Green}VLESS Link: ${Yellow}vless://$server_link${Color_Off}\n"
@@ -846,7 +848,8 @@ function vmess_ws_tls_link_gen() {
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
-    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    # server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"$CONFIG_DOMAIN\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
     echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -861,7 +864,8 @@ function users_vmess_ws_tls_link_gen() {
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
-    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    # server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"$CONFIG_DOMAIN\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
     echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -947,7 +951,8 @@ function vmess_ws_nginx_tls_link_gen() {
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    # server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"$CONFIG_DOMAIN\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
     echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -961,7 +966,8 @@ function users_vmess_ws_nginx_tls_link_gen() {
     WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    # server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
+    server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"$CONFIG_DOMAIN\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
     qrencode -t ansiutf8 -l L vmess://${server_link}
     echo -ne "${Green}VMESS Link: ${Yellow}vmess://$server_link${Color_Off}\n"
@@ -1161,7 +1167,8 @@ function trojan_ws_tls_link_gen() {
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
-    server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+    # server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+    server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH&host=$CONFIG_DOMAIN#$config_name")
 
     qrencode -t ansiutf8 -l L trojan://${server_link}
     echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
@@ -1176,7 +1183,8 @@ function users_trojan_ws_tls_link_gen() {
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
-    server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+    # server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
+    server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH&host=$CONFIG_DOMAIN#$config_name")
 
     qrencode -t ansiutf8 -l L trojan://${server_link}
     echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
