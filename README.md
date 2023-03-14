@@ -42,8 +42,7 @@ bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
 - It's better to use **TLS** supported protocols.
 - Configs that has **Nginx**  option, will setup a fake website.
 - Protocols that support **Websocket (WS)** can be used with **CDN**.
-- As of Xray-Core v1.8.0 changes, the `XTLS-direct` method is **deprecated** and
-it's better to change your configuration if you're using it.
+- `XTLS-direct` configs has been removed.
 
 1. [VLESS + WS + TLS](https://github.com/thehxdev/xray-examples/tree/main/VLESS-Websocket-TLS-s)
 1. [VLESS + TCP + TLS](https://github.com/thehxdev/xray-examples/tree/main/VLESS-TCP-TLS-Minimal-s)
@@ -55,10 +54,4 @@ it's better to change your configuration if you're using it.
 1. [VMESS + TCP + TLS](https://github.com/thehxdev/xray-examples/tree/main/VMess-TCP-TLS-s)
 1. [Trojan + TCP + TLS](https://github.com/thehxdev/xray-examples/tree/main/Trojan-TCP-TLS-s)
 1. [Trojan + WS + TLS](https://github.com/thehxdev/xray-examples/tree/main/Trojan-Websocket-TLS-s)
-
-
-## Deprecated and Removed configs
-
-1. [Trojan + TCP + XTLS (Deprecated - Removed)](https://github.com/thehxdev/xray-examples/tree/main/Trojan-TCP-XTLS-s)
-1. [Ultimate Config (All Configs + VLESS XTLS-direct) (Deprecated - Removed)](https://github.com/thehxdev/xray-examples/blob/main/VLESS-TCP-XTLS-WHATEVER)
 
