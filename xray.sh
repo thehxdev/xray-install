@@ -423,12 +423,6 @@ function modify_UUID_ws() {
     judge "change tmp file to main file"
 }
 
-#function modify_fallback_ws() {
-#	cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
-#    judge "modify Xray fallback_ws"
-#    xray_tmp_config_file_check_and_use
-#    judge "change tmp file to main file"
-#}
 
 function modify_ws() {
     cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
@@ -448,81 +442,12 @@ function modify_tls() {
     judge "change tmp file to main file"
 }
 
-function modify_xtls() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","xtlsSettings","certificates",0,"certificateFile"];"'${certFile}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray TLS Cert File"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","xtlsSettings","certificates",0,"keyFile"];"'${keyFile}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray TLS Key File"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-}
-
 function modify_PASSWORD() {
     cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
     judge "modify Xray Trojan Password"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
 }
-
-# ==================== Modify Ultimate Config ==================== #
-function modify_PASSWORD_trojan() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray Trojan Password"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-}
-
-function modify_UUID_VLESS_XTLS() {
-    [ -z "$UUID1" ] && UUID1=$(cat /proc/sys/kernel/random/uuid)
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID1}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify VLESS XTLS UUID"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-}
-
-function modify_UUID_VLESS_WS() {
-    [ -z "$UUID2" ] && UUID2=$(cat /proc/sys/kernel/random/uuid)
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",2,"settings","clients",0,"id"];"'${UUID2}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray VLESS WS UUID"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-}
-
-function modify_UUID_VMESS_WS() {
-    [ -z "$UUID3" ] && UUID3=$(cat /proc/sys/kernel/random/uuid)
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",3,"settings","clients",0,"id"];"'${UUID3}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray VLESS WS UUID"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-}
-
-function modify_ws_VLESS_WS() {
-    [ -z "$WS_PATH1" ] && WS_PATH1="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",2,"streamSettings","wsSettings","path"];"'${WS_PATH1}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray VLESS WS"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",1,"path"];"'${WS_PATH1}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray VLESS WS FALLBACK"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-}
-
-function modify_ws_VMESS_WS() {
-    [ -z "$WS_PATH2" ] && WS_PATH2="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",3,"streamSettings","wsSettings","path"];"'${WS_PATH2}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray VMESS WS"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH2}'")' >${xray_conf_dir}/config_tmp.json
-    judge "modify Xray VMESS WS FALLBACK"
-    xray_tmp_config_file_check_and_use
-    judge "change tmp file to main file"
-}
-
-# ================================================================ #
 
 function configure_certbot() {
     mkdir /ssl >/dev/null 2>&1
@@ -611,7 +536,6 @@ function restart_xray() {
 }
 
 function bbr_boost() {
-    #bash -c $(curl -L https://raw.githubusercontent.com/teddysun/across/master/bbr.sh)
     wget -N --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh && chmod +x bbr.sh && bash bbr.sh
 }
 
@@ -646,31 +570,6 @@ function configure_user_management() {
         print_ok "rquired files exist"
     fi
 }
-
-# function user_counter() {
-#     configure_user_management
-#     users_count=$(cat ${users_count_file})
-# 
-#     if [[ -e ${users_number_in_config_file} ]];then
-#         rm -rf ${users_number_in_config_file}
-#         judge "remove old user_number file"
-#         touch ${users_number_in_config_file}
-#         judge "create new user_number file"
-#     fi
-# 
-#     cat ${config_path} | grep "email" | grep -Eo "[1-9]{1,3}" | xargs -I INPUT echo INPUT >> ${users_number_in_config_file}
-#     judge "write users in users_number file"
-#     echo -e "\nCurrent Users Count = ${users_count}"
-#     echo -e "Old Users:"
-#     for ((i = 0; i < ${users_count}; i++)); do
-#         config_i=$(($i + 1))
-#         current_client=$(sed -n "${config_i}p" ${users_number_in_config_file})
-#         name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
-#         current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
-#         echo -e "  ${i}) $name \t(e-n: ${current_user_number})"
-#     done
-#     echo -e ""
-# }
 
 
 function user_counter() {
@@ -1214,244 +1113,6 @@ function trojan_ws_tls() {
     save_protocol
 }
 
-# Trojan Tcp XTLS
-
-function trojan_tcp_xtls_link_gen() {
-    read -rp "Choose config name: " config_name
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
-    CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
-    server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=xtls&type=tcp&flow=xtls-rprx-direct&alpn=h2,http/1.1#$config_name")
-
-    qrencode -t ansiutf8 -l L trojan://${server_link}
-    echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
-}
-
-function users_trojan_tcp_xtls_link_gen() {
-    user_counter
-    read -rp "Choose User: " user_number
-    read -rp "Choose config name: " config_name
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
-    CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
-    server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=xtls&type=tcp&flow=xtls-rprx-direct&alpn=h2,http/1.1#$config_name")
-
-    qrencode -t ansiutf8 -l L trojan://${server_link}
-    echo -ne "${Green}Trojan Link: ${Yellow}trojan://$server_link${Color_Off}\n"
-}
-
-function trojan_tcp_xtls_client_config() {
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
-    CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
-
-    cat << EOF > /root/trojan_xtls_client_config.json
-{
-    "log": {
-        "loglevel": "warning"
-    },
-    "inbounds": [
-        {
-            "port": 3080,
-            "listen": "127.0.0.1",
-            "protocol": "socks",
-            "settings": {
-                "udp": true
-            }
-        },
-        {
-            "port": 3081,
-            "protocol": "http",
-            "sniffing": {
-              "enabled": true,
-              "destOverride": ["http", "tls"]
-            },
-            "settings": {
-              "auth": "noauth"
-            }
-        }
-    ],
-    "outbounds": [
-        {
-            "protocol": "trojan",
-            "settings": {
-                "servers": [
-                    {
-                        "address": "${SERVER_IP}",
-                        "flow": "xtls-rprx-direct",
-                        "port": ${PORT},
-                        "password": "${PASSWORD}"
-                    }
-                ]
-            },
-            "streamSettings": {
-                "network": "tcp",
-                "security": "xtls",
-                "xtlsSettings": {
-                    "serverName": "${CONFIG_DOMAIN}",
-                    "fingerprint": "chrome"
-                }
-            }
-        }
-    ]
-}
-EOF
-}
-
-function users_trojan_tcp_xtls_client_config() {
-    user_counter
-    read -rp "Choose User: " user_number
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    SERVER_IP=$(curl -s4m8 https://icanhazip.com)
-    CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
-    name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${user_number}].email | tr -d '"' | grep "@." | tr -d "[1-9]{1,3}@")
-
-    cat << EOF > /root/trojan_xtls_client_config.${name}.json
-{
-    "log": {
-        "loglevel": "warning"
-    },
-    "inbounds": [
-        {
-            "port": 3080,
-            "listen": "127.0.0.1",
-            "protocol": "socks",
-            "settings": {
-                "udp": true
-            }
-        },
-        {
-            "port": 3081,
-            "protocol": "http",
-            "sniffing": {
-              "enabled": true,
-              "destOverride": ["http", "tls"]
-            },
-            "settings": {
-              "auth": "noauth"
-            }
-        }
-    ],
-    "outbounds": [
-        {
-            "protocol": "trojan",
-            "settings": {
-                "servers": [
-                    {
-                        "address": "${SERVER_IP}",
-                        "flow": "xtls-rprx-direct",
-                        "port": ${PORT},
-                        "password": "${PASSWORD}"
-                    }
-                ]
-            },
-            "streamSettings": {
-                "network": "tcp",
-                "security": "xtls",
-                "xtlsSettings": {
-                    "serverName": "${CONFIG_DOMAIN}",
-                    "fingerprint": "chrome"
-                }
-            }
-        }
-    ]
-}
-EOF
-
-    print_ok "User Config file --> /root/trojan_xtls_client_config.${name}.json"
-}
-
-function trojan_tcp_xtls() {
-    check_bash
-    check_root
-    check_os
-    disable_firewalls
-    install_deps
-    basic_optimization
-    ip_check
-    domain_check
-    xray_install
-    configure_certbot
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-TCP-XTLS-s/config_server.json
-    judge "Download configuration"
-    modify_port
-    modify_PASSWORD
-    modify_xtls
-    restart_xray
-    trojan_tcp_xtls_link_gen
-    CONFIG_PROTO="TrojanTcpXtls"
-    save_protocol
-}
-
-# ================================== #
-
-# Ultimate conf
-function trojan_u_link_gen() {
-    server_link_trojan=$(echo -neE "$PASSWORD@$SERVER_IP:443?sni=$domain&security=tls&type=tcp#ultimate_xray_trojan")
-    echo -ne "\n${Green}Trojan Link: ${Yellow}trojan://$server_link_trojan${Color_Off}\n"
-}
-
-function vless_u_tls_link_gen() {
-    UUID1_1=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    server_link_vless_tls=$(echo -neE "$UUID1_1@$SERVER_IP:443?sni=$domain&security=tls&type=tcp#ultimate_xray_vless_tls")
-    echo -ne "\n${Green}VLESS+TCP+TLS Link: ${Yellow}vless://$server_link_vless_tls${Color_Off}\n"
-}
-
-function vless_u_ws_tls_link_gen() {
-    UUID2_2=$(cat ${xray_conf_dir}/config.json | jq .inbounds[2].settings.clients[0].id | tr -d '"')
-    server_link_vless_ws_tls=$(echo -neE "$UUID2_2@$SERVER_IP:443?sni=$domain&security=tls&type=ws&path=$WS_PATH1#ultimate_xray_vless_ws_tls")
-    echo -ne "\n${Green}VLESS+WS+TLS Link: ${Yellow}vless://$server_link_vless_ws_tls${Color_Off}\n"
-}
-
-function vmess_u_ws_tls_link_gen() {
-    UUID3_3=$(cat ${xray_conf_dir}/config.json | jq .inbounds[3].settings.clients[0].id | tr -d '"')
-    server_link_vmess_ws_tls=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID3_3\",\"net\": \"ws\",\"path\": \"$WS_PATH2\",\"port\": \"443\",\"ps\": \"ultimate_xray_vmess_ws_tls\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$domain\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
-    echo -ne "\n${Green}VMESS+WS+TLS Link: ${Yellow}vmess://$server_link_vmess_ws_tls${Color_Off}\n"
-}
-
-function ultimate_server_config_link_gen() {
-    vless_u_tls_link_gen
-    vless_u_ws_tls_link_gen
-    vmess_u_ws_tls_link_gen
-    trojan_u_link_gen
-}
-
-
-function ultimate_server_config() {
-    check_bash
-    check_root
-    check_os
-    disable_firewalls
-    install_deps
-    basic_optimization
-    ip_check
-    domain_check
-    port_exist_check 443
-    xray_install
-    configure_certbot
-    #install_nginx
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-TCP-XTLS-WHATEVER/config_server.json
-    judge "Download configuration"
-    #wget -O ${nginx_conf} https://pastebin.com/raw/wa4gwhrs
-    #judge "Download Nginx configuration"
-    #sed -i "s/DOMAIN/${domain}/g" /etc/nginx/nginx.conf
-    #setup_fake_website
-    modify_UUID_VLESS_XTLS
-    modify_UUID_VLESS_WS
-    modify_UUID_VMESS_WS
-    modify_ws_VLESS_WS
-    modify_ws_VMESS_WS
-    modify_PASSWORD_trojan
-    restart_xray
-    ultimate_server_config_link_gen
-    CONFIG_PROTO="ultimate"
-    save_protocol
-}
-
 # ===================================== #
 
 # Dokodemo
@@ -1538,12 +1199,7 @@ function get_config_link() {
         CURRENT_CONFIG=$(cat ${proto_file})
     fi
 
-    if [[ ${CURRENT_CONFIG} == "ultimate" ]]; then
-        #check_domain_file
-        #ultimate_server_config_link_gen
-        print_error "Ultimate Config is single user and can not provide new links."
-        exit 1
-    elif [[ ${CURRENT_CONFIG} == "VlessWsTls" ]]; then
+    if [[ ${CURRENT_CONFIG} == "VlessWsTls" ]]; then
         check_domain_file
         users_vless_ws_tls_link_gen
     elif [[ ${CURRENT_CONFIG} == "VlessTcpTls" ]]; then
@@ -1570,10 +1226,6 @@ function get_config_link() {
     elif [[ ${CURRENT_CONFIG} == "TrojanWsTls" ]]; then
         check_domain_file
         users_trojan_ws_tls_link_gen
-    elif [[ ${CURRENT_CONFIG} == "TrojanTcpXtls" ]]; then
-        check_domain_file
-        users_trojan_tcp_xtls_link_gen
-        users_trojan_tcp_xtls_client_config
     fi
 }
 
@@ -1582,11 +1234,7 @@ function get_config_link() {
 # Define current protocol
 function get_current_protocol() {
     if [ ! -e "${proto_file}" ]; then
-        if grep -q "xtls" ${config_path} && grep -q "vless" ${config_path}; then
-            echo -e "ultimate" > ${proto_file}
-            judge "add ultimate to proto.txt"
-
-        elif grep -q "vless" ${config_path} && grep -q "wsSettings" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+        if grep -q "vless" ${config_path} && grep -q "wsSettings" ${config_path} && grep -q "tlsSettings" ${config_path}; then
             echo -e "VlessWsTls" > ${proto_file}
             judge "add VlessWsTls to proto.txt"
 
@@ -1625,10 +1273,6 @@ function get_current_protocol() {
         elif grep -q "trojan" ${config_path} && grep -q "wsSettings"; then
             echo -e "TrojanWsTls" > ${proto_file}
             judge "add TrojanWsTls to proto.txt"
-
-        elif grep -q "trojan" ${config_path} && grep -q "xtls" ${config_path}; then
-            echo -e "TrojanTcpXtls" > ${proto_file}
-            judge "add TrojanTcpXtls to proto.txt"
 
         else
             print_error "Can't detect your configureation"
@@ -1949,79 +1593,70 @@ function get_ssl_certificate() {
 # ===================================== #
 function xray_setup_menu() {
     clear
-    echo -e "===================  ULTIMATE  ===================="
-    echo -e "${Blue}1. Ultimate Configuration (All Protocols + XTLS/TLS) ${Yellow}(Single User)${Color_Off}"
     echo -e "====================  VLESS  ======================"
-    echo -e "${Green}2. VLESS + WS + TLS${Color_Off}"
-    echo -e "${Green}3. VLESS + TCP + TLS${Color_Off}"
+    echo -e "${Green}1. VLESS + WS + TLS${Color_Off}"
+    echo -e "${Green}2. VLESS + TCP + TLS${Color_Off}"
     echo -e "====================  VMESS  ======================"
-    echo -e "${Green}4. VMESS + WS ${Red}(NOT Recommended - Low Security)${Color_Off}"
-    echo -e "${Green}5. VMESS + WS + TLS${Color_Off}"
-    echo -e "${Green}6. VMESS + WS + Nginx (No TLS)${Color_Off}"
-    echo -e "${Green}7. VMESS + WS + Nginx (TLS)${Color_Off}"
-    echo -e "${Green}8. VMESS + TCP ${Red}(NOT Recommended - Low Security)${Color_Off}"
-    echo -e "${Green}9. VMESS + TCP + TLS${Color_Off}"
+    echo -e "${Green}3. VMESS + WS ${Red}(NOT Recommended - Low Security)${Color_Off}"
+    echo -e "${Green}4. VMESS + WS + TLS${Color_Off}"
+    echo -e "${Green}5. VMESS + WS + Nginx (No TLS)${Color_Off}"
+    echo -e "${Green}6. VMESS + WS + Nginx (TLS)${Color_Off}"
+    echo -e "${Green}7. VMESS + TCP ${Red}(NOT Recommended - Low Security)${Color_Off}"
+    echo -e "${Green}8. VMESS + TCP + TLS${Color_Off}"
     echo -e "====================  TROJAN  ====================="
-    echo -e "${Green}10. Trojan + TCP + TLS${Color_Off}"
-    echo -e "${Green}11. Trojan + WS + TLS${Color_Off}"
-    echo -e "${Green}12. Trojan + TCP + XTLS${Color_Off}"
+    echo -e "${Green}9. Trojan + TCP + TLS${Color_Off}"
+    echo -e "${Green}10. Trojan + WS + TLS${Color_Off}"
     echo -e "===================================================="
-    echo -e "${Yellow}13. Exit${Color_Off}\n"
+    echo -e "${Yellow}11. Exit${Color_Off}\n"
     read -rp "Enter an Option: " menu_num
     case $menu_num in
     1)
-        ultimate_server_config
-        ;;
-    2)
         vless_ws_tls
         echo -e "1" > ${users_count_file}
         echo -e "1" > ${users_number_in_config_file}
         ;;
-    3)
+    2)
         vless_tcp_tls
         echo -e "1" > ${users_count_file}
         echo -e "1" > ${users_number_in_config_file}
         ;;
-    4)
+    3)
         vmess_ws
         echo -e "1" > ${users_count_file}
         echo -e "1" > ${users_number_in_config_file}
         ;;
-    5)
+    4)
         vmess_ws_tls
         echo -e "1" > ${users_count_file}
         echo -e "1" > ${users_number_in_config_file}
         ;;
-    6)
+    5)
         vmess_ws_nginx
         echo -e "1" > ${users_count_file}
         echo -e "1" > ${users_number_in_config_file}
         ;;
-    7)
+    6)
         vmess_ws_nginx_tls
         echo -e "1" > ${users_count_file}
         echo -e "1" > ${users_number_in_config_file}
         ;;
-    8)
+    7)
         vmess_tcp
         echo -e "1" > ${users_count_file}
         echo -e "1" > ${users_number_in_config_file}
         ;;
-    9)
+    8)
         vmess_tcp_tls
         echo -e "1" > ${users_count_file}
         echo -e "1" > ${users_number_in_config_file}
         ;;
-    10)
+    9)
         trojan_tcp_tls
         ;;
-    11)
+    10)
         trojan_ws_tls
         ;;
-    12)
-        trojan_tcp_xtls
-        ;;
-    13)
+    11)
         exit 0
         ;;
     *)
