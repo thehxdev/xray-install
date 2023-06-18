@@ -574,14 +574,14 @@ function init_xray() {
 }
 
 
-function vless_ws_tls {
+function vless_ws_tls() {
     local INB=$(base_inbound)
     local INB=$(modify_port "$INB")
     local INB=$(modify_protocol "$INB" 'vless')
     local INB=$(modify_network "$INB" 'ws')
     local INB=$(modify_ws_path "$INB")
 
-    echo $INB | jq .
+    echo "$INB" | jq .
 }
 
 #check_root

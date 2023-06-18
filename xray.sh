@@ -11,10 +11,12 @@ Purple='\033[0;35m'
 Cyan='\033[0;36m'
 White='\033[0;37m'
 
+# Constants
+XRAY_CONFIG_DIRECTORY="/usr/local/etc/xray"
+XRAY_CONFIG_FILE="/usr/local/etc/xray/config.json"
+
 # Variables 
 github_branch="main"
-xray_conf_dir="/usr/local/etc/xray"
-config_path="/usr/local/etc/xray/config.json"
 users_count_file="/usr/local/etc/xray/users_count.txt"
 users_number_in_config_file="/usr/local/etc/xray/users_number_in_config.txt"
 access_log_path="/var/log/xray/access.log"
@@ -25,7 +27,8 @@ website_dir="/var/www/html"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
-go_version="1.19.4"
+go_version="1.20.3"
+
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 PASSWORD="$(head -n 10 /dev/urandom | md5sum | head -c 18)"
@@ -111,29 +114,31 @@ function check_os() {
 }
 
 function disable_firewalls() {
-    is_firewalld=$(systemctl list-units --type=service --state=active | grep -c firewalld)
-    is_nftables=$(systemctl list-units --type=service --state=active | grep -c nftables)
-    is_ufw=$(systemctl list-units --type=service --state=active | grep -c ufw)
+    is_firewalld=$(systemctl is-actice --quiet firewalld)
+    is_nftables=$(systemctl is-actice --quiet nftables)
+    is_ufw=$(systemctl is-actice --quiet ufw)
 
-    if [[ "$is_nftables" -ne 0 ]]; then
+    if ${is_nftables}; then
         systemctl stop nftables
         systemctl disable nftables
     fi 
 
-    if [[ "$is_ufw" -ne 0 ]]; then
+    if ${is_ufw}; then
         systemctl stop ufw
         systemctl disable ufw
     fi
 
-    if [[ "$is_firewalld" -ne 0 ]]; then
+    if ${is_firewalld}; then
         systemctl stop firewalld
         systemctl disable firewalld
     fi
 }
 
+
 function install_nginx() {
     installit nginx
 }
+
 
 function install_deps() {
     installit lsof tar
@@ -166,6 +171,7 @@ function install_deps() {
     fi
 }
 
+
 function basic_optimization() {
     sed -i '/^\*\ *soft\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
     sed -i '/^\*\ *hard\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
@@ -173,9 +179,11 @@ function basic_optimization() {
     echo '* hard nofile 65536' >>/etc/security/limits.conf
 }
 
+
 function ip_check() {
     local_ipv4=$(curl -s4m8 https://icanhazip.com)
     local_ipv6=$(curl -s6m8 https://icanhazip.com)
+
     if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
         print_ok "Pure IPv6 server"
         SERVER_IP=$(curl -s6m8 https://icanhazip.com)
@@ -184,6 +192,7 @@ function ip_check() {
         SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     fi
 }
+
 
 function cloudflare_dns() {
     ip_check
@@ -261,13 +270,13 @@ function port_exist_check() {
 }
 
 function xray_tmp_config_file_check_and_use() {
-    if [[ -s ${xray_conf_dir}/config_tmp.json ]]; then
-        mv -f ${xray_conf_dir}/config_tmp.json ${xray_conf_dir}/config.json
+    if [[ -s ${XRAY_CONFIG_DIRECTORY}/config_tmp.json ]]; then
+        mv -f ${XRAY_CONFIG_DIRECTORY}/config_tmp.json ${XRAY_CONFIG_DIRECTORY}/config.json
     else
         print_error "can't modify xray config file!"
         exit 1
     fi
-    touch ${xray_conf_dir}/config_tmp.json
+    touch ${XRAY_CONFIG_DIRECTORY}/config_tmp.json
 }
 
 function restart_nginx(){
@@ -385,6 +394,7 @@ EOF
     echo -e "${Blue}Forwarding incoming traffic to ${Green}${foreign_server_ip}:${foreign_server_port}${Color_Off}"
 }
 
+
 function xray_install() {
     print_ok "Installing Xray"
     curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install
@@ -395,6 +405,7 @@ function xray_install() {
     judge "add nobody user to nobody group"
 }
 
+
 function modify_port() {
     read -rp "Please enter the port number (default: 8080): " PORT
     [ -z "$PORT" ] && PORT="8080"
@@ -403,21 +414,22 @@ function modify_port() {
         exit 1
     fi
     port_exist_check $PORT
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${xray_conf_dir}/config_tmp.json
+    cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${XRAY_CONFIG_DIRECTORY}/config_tmp.json
     xray_tmp_config_file_check_and_use
     judge "Xray port modification"
 }
 
+
 function modify_UUID() {
     [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
+    cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${XRAY_CONFIG_DIRECTORY}/config_tmp.json
     judge "modify Xray UUID"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
 }
 
 function modify_UUID_ws() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"id"];"'${UUID}'")' >${xray_conf_dir}/config_tmp.json
+    cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"id"];"'${UUID}'")' >${XRAY_CONFIG_DIRECTORY}/config_tmp.json
     judge "modify Xray ws UUID"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
@@ -425,25 +437,25 @@ function modify_UUID_ws() {
 
 
 function modify_ws() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${xray_conf_dir}/config_tmp.json
+    cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${XRAY_CONFIG_DIRECTORY}/config_tmp.json
     judge "modify Xray ws"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
 }
 
 function modify_tls() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates",0,"certificateFile"];"'${certFile}'")' >${xray_conf_dir}/config_tmp.json
+    cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates",0,"certificateFile"];"'${certFile}'")' >${XRAY_CONFIG_DIRECTORY}/config_tmp.json
     judge "modify Xray TLS Cert File"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates",0,"keyFile"];"'${keyFile}'")' >${xray_conf_dir}/config_tmp.json
+    cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq 'setpath(["inbounds",0,"streamSettings","tlsSettings","certificates",0,"keyFile"];"'${keyFile}'")' >${XRAY_CONFIG_DIRECTORY}/config_tmp.json
     judge "modify Xray TLS Key File"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
 }
 
 function modify_PASSWORD() {
-    cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"password"];"'${PASSWORD}'")' >${xray_conf_dir}/config_tmp.json
+    cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"password"];"'${PASSWORD}'")' >${XRAY_CONFIG_DIRECTORY}/config_tmp.json
     judge "modify Xray Trojan Password"
     xray_tmp_config_file_check_and_use
     judge "change tmp file to main file"
@@ -541,19 +553,19 @@ function bbr_boost() {
 
 function configure_user_management() {
     echo -e "checking..."
-    if [[ ! -e "${config_path}" ]]; then
+    if [[ ! -e "${XRAY_CONFIG_FILE}" ]]; then
         print_error "can't find xray config. Seems like you don't installed xray"
         exit 1
     else
         print_ok "xray is installed"
     fi
 
-    if grep -q -E -o "[1-9]{1,3}@" ${config_path} ; then
+    if grep -q -E -o "[1-9]{1,3}@" ${XRAY_CONFIG_FILE} ; then
         print_ok "admin user found"
     else
-        cp ${config_path} ${xray_conf_dir}/config.json.bak
+        cp ${XRAY_CONFIG_FILE} ${XRAY_CONFIG_DIRECTORY}/config.json.bak
         judge "make backup file from config.json"
-        cat ${config_path} | jq 'setpath(["inbounds",0,"settings","clients",0,"email"];"1@admin")' >${xray_conf_dir}/config_tmp.json
+        cat ${XRAY_CONFIG_FILE} | jq 'setpath(["inbounds",0,"settings","clients",0,"email"];"1@admin")' >${XRAY_CONFIG_DIRECTORY}/config_tmp.json
         judge "initialize first user"
         xray_tmp_config_file_check_and_use
     fi
@@ -578,8 +590,8 @@ function user_counter() {
     echo -e "\nCurrent Users Count = ${users_count}"
     echo -e "Old Users:"
     for ((i = 0; i < ${users_count}; i++)); do
-        name=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"')
-        current_user_number=$(cat ${config_path} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
+        name=$(cat ${XRAY_CONFIG_FILE} | jq .inbounds[0].settings.clients[${i}].email | tr -d '"')
+        current_user_number=$(cat ${XRAY_CONFIG_FILE} | jq .inbounds[0].settings.clients[${i}].email | grep -Eo "[1-9]{1,3}")
         echo -e "  ${i}) $name"
     done
     echo -e ""
@@ -590,9 +602,9 @@ function user_counter() {
 # VLESS + WS + TLS
 function vless_ws_tls_link_gen() {
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     # server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
@@ -606,9 +618,9 @@ function users_vless_ws_tls_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     # server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
@@ -629,7 +641,7 @@ function vless_ws_tls() {
     domain_check
     xray_install
     configure_certbot
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-Websocket-TLS-s/server_config.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-Websocket-TLS-s/server_config.json
     judge "Download configuration"
     modify_port
     modify_UUID
@@ -644,8 +656,8 @@ function vless_ws_tls() {
 # VLESS + TCP + TLS
 function vless_tcp_tls_link_gen() {
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=tcp#$config_name")
 
@@ -657,8 +669,8 @@ function users_vless_tcp_tls_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "$UUID@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=tcp#$config_name")
 
@@ -677,7 +689,7 @@ function vless_tcp_tls() {
     domain_check
     xray_install
     configure_certbot
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-TCP-TLS-Minimal-s/config_server.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VLESS-TCP-TLS-Minimal-s/config_server.json
     judge "Download configuration"
     modify_port
     modify_UUID
@@ -694,9 +706,9 @@ function vless_tcp_tls() {
 # VMESS + WS 
 function vmess_ws_link_gen() {
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -708,9 +720,9 @@ function users_vmess_ws_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -727,7 +739,7 @@ function vmess_ws() {
     basic_optimization
     ip_check
     xray_install
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-s/config_server.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-s/config_server.json
     judge "Download configuration"
     modify_port
     modify_UUID
@@ -742,9 +754,9 @@ function vmess_ws() {
 # ==== VMESS + WS + TLS ====
 function vmess_ws_tls_link_gen() {
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     # server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
@@ -758,9 +770,9 @@ function users_vmess_ws_tls_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     # server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
@@ -781,7 +793,7 @@ function vmess_ws_tls() {
     domain_check
     xray_install
     configure_certbot
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-TLS-s/config_server.json
     judge "Download configuration"
     modify_port
     modify_UUID
@@ -796,8 +808,8 @@ function vmess_ws_tls() {
 # ==== VMESS + WS + Nginx ====
 function vmess_ws_nginx_link_gen() {
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"80\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -809,8 +821,8 @@ function users_vmess_ws_nginx_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"80\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
 
@@ -831,7 +843,7 @@ function vmess_ws_nginx() {
     install_nginx
     configure_nginx_reverse_proxy_notls
     setup_fake_website
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-s/server_config.json
     judge "Download configuration"
     modify_UUID
     modify_ws
@@ -846,8 +858,8 @@ function vmess_ws_nginx() {
 
 function vmess_ws_nginx_tls_link_gen() {
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     # server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
@@ -861,8 +873,8 @@ function users_vmess_ws_nginx_tls_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     # server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"ws\",\"path\": \"$WEBSOCKET_PATH\",\"port\": \"443\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
@@ -891,7 +903,7 @@ function vmess_ws_nginx_tls() {
     add_wsPath_to_nginx
     setup_fake_website
     restart_nginx
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-TLS-s/server_config.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-Websocket-Nginx-TLS-s/server_config.json
     judge "Download configuration"
     modify_UUID
     modify_ws
@@ -904,9 +916,9 @@ function vmess_ws_nginx_tls() {
 # VMESS + TCP
 function vmess_tcp_link_gen() {
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    #WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     #CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
@@ -919,9 +931,9 @@ function users_vmess_tcp_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    #WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     #CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"\",\"tls\": \"\",\"type\": \"\",\"v\": \"2\"}" | base64 | tr -d '\n')
@@ -939,7 +951,7 @@ function vmess_tcp() {
     basic_optimization
     ip_check
     xray_install
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-TCP-s/config_server.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-TCP-s/config_server.json
     judge "Download configuration"
     modify_port
     modify_UUID
@@ -953,8 +965,8 @@ function vmess_tcp() {
 # VMESS + TCP + TLS
 function vmess_tcp_tls_link_gen() {
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"/\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"http\",\"v\": \"2\"}" | base64 | tr -d '\n')
@@ -967,9 +979,9 @@ function users_vmess_tcp_tls_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    #WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
     server_link=$(echo -neE "{\"add\": \"$SERVER_IP\",\"aid\": \"0\",\"host\": \"\",\"id\": \"$UUID\",\"net\": \"tcp\",\"path\": \"/\",\"port\": \"$PORT\",\"ps\": \"$config_name\",\"scy\": \"chacha20-poly1305\",\"sni\": \"$CONFIG_DOMAIN\",\"tls\": \"tls\",\"type\": \"http\",\"v\": \"2\"}" | base64 | tr -d '\n')
@@ -989,7 +1001,7 @@ function vmess_tcp_tls() {
     domain_check
     configure_certbot
     xray_install
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-TCP-TLS-s/config_server.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/VMess-TCP-TLS-s/config_server.json
     judge "Download configuration"
     modify_port
     modify_UUID
@@ -1006,12 +1018,12 @@ function vmess_tcp_tls() {
 
 function trojan_tcp_tls_link_gen() {
     read -rp "Choose config name: " config_name
-    #UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    #UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    #WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
+    PASSWORD=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=tcp#$config_name")
 
     qrencode -t ansiutf8 -l L trojan://${server_link}
@@ -1022,12 +1034,12 @@ function users_trojan_tcp_tls_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    #UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    #WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    #UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    #WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
+    PASSWORD=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=tcp#$config_name")
 
     qrencode -t ansiutf8 -l L trojan://${server_link}
@@ -1045,7 +1057,7 @@ function trojan_tcp_tls() {
     domain_check
     xray_install
     configure_certbot
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-TCP-TLS-s/config_server.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-TCP-TLS-s/config_server.json
     judge "Download configuration"
     modify_port
     modify_PASSWORD
@@ -1060,12 +1072,12 @@ function trojan_tcp_tls() {
 
 function trojan_ws_tls_link_gen() {
     read -rp "Choose config name: " config_name
-    #UUID=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    #UUID=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
+    PASSWORD=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[0].password | tr -d '"')
     # server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH&host=$CONFIG_DOMAIN#$config_name")
 
@@ -1077,11 +1089,11 @@ function users_trojan_ws_tls_link_gen() {
     user_counter
     read -rp "Choose User: " user_number
     read -rp "Choose config name: " config_name
-    PORT=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].port)
-    WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+    PORT=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].port)
+    WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
     SERVER_IP=$(curl -s4m8 https://icanhazip.com)
     CONFIG_DOMAIN=$(cat /usr/local/domain.txt)
-    PASSWORD=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
+    PASSWORD=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].settings.clients[${user_number}].password | tr -d '"')
     # server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH#$config_name")
     server_link=$(echo -neE "$PASSWORD@$SERVER_IP:$PORT?sni=$CONFIG_DOMAIN&security=tls&type=ws&path=$WEBSOCKET_PATH&host=$CONFIG_DOMAIN#$config_name")
 
@@ -1101,7 +1113,7 @@ function trojan_ws_tls() {
     xray_install
     configure_certbot
     #get_ssl_cert
-    wget -O ${xray_conf_dir}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-Websocket-TLS-s/config_server.json
+    wget -O ${XRAY_CONFIG_DIRECTORY}/config.json https://raw.githubusercontent.com/thehxdev/xray-examples/main/Trojan-Websocket-TLS-s/config_server.json
     judge "Download configuration"
     modify_port
     modify_ws
@@ -1128,7 +1140,7 @@ function dokodemo_door_setup() {
     read -rp "Enter Listening Port: " LISTENING_PORT
     read -rp "Enter Foreign Server IP Address: " FOREIGN_SERVER_IP
     read -rp "Enter Foreign Server Port: " FOREIGN_SERVER_PORT
-    cat << EOF > ${xray_conf_dir}/config.json
+    cat << EOF > ${XRAY_CONFIG_DIRECTORY}/config.json
 {
     "inbounds": [
         {
@@ -1234,43 +1246,43 @@ function get_config_link() {
 # Define current protocol
 function get_current_protocol() {
     if [ ! -e "${proto_file}" ]; then
-        if grep -q "vless" ${config_path} && grep -q "wsSettings" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+        if grep -q "vless" ${XRAY_CONFIG_FILE} && grep -q "wsSettings" ${XRAY_CONFIG_FILE} && grep -q "tlsSettings" ${XRAY_CONFIG_FILE}; then
             echo -e "VlessWsTls" > ${proto_file}
             judge "add VlessWsTls to proto.txt"
 
-        elif grep -q "vless" ${config_path} && grep -q "tcp" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+        elif grep -q "vless" ${XRAY_CONFIG_FILE} && grep -q "tcp" ${XRAY_CONFIG_FILE} && grep -q "tlsSettings" ${XRAY_CONFIG_FILE}; then
             echo -e "VlessTcpTls" > ${proto_file}
             judge "add VlessTcpTls to proto.txt"
 
-        elif grep -q "vmess" ${config_path} && grep -q "wsSettings" ${config_path} && ! grep -q "tlsSettings" ${config_path} && ! grep -q "127.0.0.1" ${config_path}; then
+        elif grep -q "vmess" ${XRAY_CONFIG_FILE} && grep -q "wsSettings" ${XRAY_CONFIG_FILE} && ! grep -q "tlsSettings" ${XRAY_CONFIG_FILE} && ! grep -q "127.0.0.1" ${XRAY_CONFIG_FILE}; then
             echo -e "VmessWs" > ${proto_file}
             judge "add VmessWs to proto.txt"
 
-        elif grep -q "vmess" ${config_path} && grep -q "wsSettings" ${config_path} && grep -q "tlsSettings" ${config_path} && ! grep -q "127.0.0.1" ${config_path}; then
+        elif grep -q "vmess" ${XRAY_CONFIG_FILE} && grep -q "wsSettings" ${XRAY_CONFIG_FILE} && grep -q "tlsSettings" ${XRAY_CONFIG_FILE} && ! grep -q "127.0.0.1" ${XRAY_CONFIG_FILE}; then
             echo -e "VmessWsTls" > ${proto_file}
             judge "add VmessWsTls to proto.txt"
 
-        elif grep -q "vmess" ${config_path} && grep -q "127.0.0.1" ${config_path} && ! grep -q "ssl_certificate" ${nginx_conf}; then
+        elif grep -q "vmess" ${XRAY_CONFIG_FILE} && grep -q "127.0.0.1" ${XRAY_CONFIG_FILE} && ! grep -q "ssl_certificate" ${nginx_conf}; then
             echo -e "VmessWsNginx" > ${proto_file}
             judge "add VmessWsNginx to proto.txt"
 
-        elif grep -q "vmess" ${config_path} && grep -q "127.0.0.1" ${config_path} && grep -q "ssl_certificate" ${nginx_conf}; then
+        elif grep -q "vmess" ${XRAY_CONFIG_FILE} && grep -q "127.0.0.1" ${XRAY_CONFIG_FILE} && grep -q "ssl_certificate" ${nginx_conf}; then
             echo -e "VmessWsNginxTls" > ${proto_file}
             judge "add VmessWsNginxTls to proto.txt"
 
-        elif grep -q "vmess" ${config_path} && grep -q "tcp" ${config_path} && ! grep -q "tlsSettings" ${config_path}; then
+        elif grep -q "vmess" ${XRAY_CONFIG_FILE} && grep -q "tcp" ${XRAY_CONFIG_FILE} && ! grep -q "tlsSettings" ${XRAY_CONFIG_FILE}; then
             echo -e "VmessTcp" > ${proto_file}
             judge "add VmessTcp to proto.txt"
 
-        elif grep -q "vmess" ${config_path} && grep -q "tcp" ${config_path} && grep -q "tlsSettings" ${config_path}; then
+        elif grep -q "vmess" ${XRAY_CONFIG_FILE} && grep -q "tcp" ${XRAY_CONFIG_FILE} && grep -q "tlsSettings" ${XRAY_CONFIG_FILE}; then
             echo -e "VmessTcpTls" > ${proto_file}
             judge "add VmessTcpTls to proto.txt"
 
-        elif grep -q "trojan" ${config_path} && grep -q "tcp" ${config_path}; then
+        elif grep -q "trojan" ${XRAY_CONFIG_FILE} && grep -q "tcp" ${XRAY_CONFIG_FILE}; then
             echo -e "TrojanTcpTls" > ${proto_file}
             judge "add TrojanTcpTls to proto.txt"
 
-        elif grep -q "trojan" ${config_path} && grep -q "wsSettings"; then
+        elif grep -q "trojan" ${XRAY_CONFIG_FILE} && grep -q "wsSettings"; then
             echo -e "TrojanWsTls" > ${proto_file}
             judge "add TrojanWsTls to proto.txt"
 
@@ -1303,9 +1315,9 @@ function make_backup() {
         fi
     fi
 
-    if [ -e ${xray_conf_dir} ]; then
+    if [ -e ${XRAY_CONFIG_DIRECTORY} ]; then
         mkdir ${backup_dir}/xray >/dev/null 2>&1
-        cp -r ${xray_conf_dir}/* ${backup_dir}/xray/
+        cp -r ${XRAY_CONFIG_DIRECTORY}/* ${backup_dir}/xray/
         judge "copy xray configurations"
         if [ -e "/usr/local/domain.txt" ]; then
             cp /usr/local/domain.txt ${backup_dir}
@@ -1314,7 +1326,7 @@ function make_backup() {
     fi
 
     if [ -e "/etc/nginx" ]; then
-        WEBSOCKET_PATH=$(cat ${xray_conf_dir}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
+        WEBSOCKET_PATH=$(cat ${XRAY_CONFIG_DIRECTORY}/config.json | jq .inbounds[0].streamSettings.wsSettings.path | tr -d '"')
         WEBSOCKET_PATH_IN_NGINX=$(grep -o ${WEBSOCKET_PATH} ${nginx_conf})
         if [[ -n ${WEBSOCKET_PATH} && -n ${WEBSOCKET_PATH_IN_NGINX} ]]; then
             if [[ ${WEBSOCKET_PATH} == ${WEBSOCKET_PATH_IN_NGINX} ]]; then
@@ -1401,15 +1413,15 @@ function restore_backup() {
         fi
 
         if [[ -e "${backup_dir}/xray" ]]; then
-            if [[ -e "${xray_conf_dir}" ]]; then
-                rm -rf ${xray_conf_dir}/*
+            if [[ -e "${XRAY_CONFIG_DIRECTORY}" ]]; then
+                rm -rf ${XRAY_CONFIG_DIRECTORY}/*
                 judge "remove old configs"
-                cp -r ${backup_dir}/xray/* ${xray_conf_dir}/
+                cp -r ${backup_dir}/xray/* ${XRAY_CONFIG_DIRECTORY}/
                 judge "restore xray files"
                 systemctl restart xray
                 judge "restart xray"
             else
-                print_error "${xray_conf_dir} not found"
+                print_error "${XRAY_CONFIG_DIRECTORY} not found"
             fi
         fi
 
@@ -1441,7 +1453,7 @@ function restore_backup() {
         fi
 
         if [[ -e "${backup_dir}/users_expiry_date.txt" ]]; then
-            cp -r ${backup_dir}/${users_expiry_date_file} ${xray_conf_dir}/
+            cp -r ${backup_dir}/${users_expiry_date_file} ${XRAY_CONFIG_DIRECTORY}/
             judge "Restore users expiry date file"
         else
             print_info "Users expiry date file not found! Skipping..."
@@ -1497,20 +1509,20 @@ function nginx_status() {
 # Read Xray Config
 
 function read_current_config() {
-    if [[ -e "${config_path}" ]]; then
-        current_port=$(cat ${config_path} | jq .inbounds[0].port)
-        current_protocol=$(cat ${config_path} | jq .inbounds[0].protocol)
+    if [[ -e "${XRAY_CONFIG_FILE}" ]]; then
+        current_port=$(cat ${XRAY_CONFIG_FILE} | jq .inbounds[0].port)
+        current_protocol=$(cat ${XRAY_CONFIG_FILE} | jq .inbounds[0].protocol)
         current_users_count=$(cat ${users_count_file})
-        current_network=$(cat ${config_path} | jq .inbounds[0].streamSettings.network)
-        current_ws_path=$(cat ${config_path} | jq .inbounds[0].streamSettings.wsSettings.path)
-        current_security=$(cat ${config_path} | jq .inbounds[0].streamSettings.security)
+        current_network=$(cat ${XRAY_CONFIG_FILE} | jq .inbounds[0].streamSettings.network)
+        current_ws_path=$(cat ${XRAY_CONFIG_FILE} | jq .inbounds[0].streamSettings.wsSettings.path)
+        current_security=$(cat ${XRAY_CONFIG_FILE} | jq .inbounds[0].streamSettings.security)
         current_active_connections=$(ss -tnp | grep "xray" | awk '{print $5}' | grep "\[::ffff" | grep -Eo "[0-9]{1,3}(\.[0-9]{1,3}){3}" | sort | uniq | wc -l)
 
         echo -e "========================================="
         echo -e "Users Count: ${current_users_count}"
 
         if [[ ${current_port} == "10000" ]]; then
-            if grep -q "127.0.0.1" ${config_path}; then
+            if grep -q "127.0.0.1" ${XRAY_CONFIG_FILE}; then
                 echo -e "Port: 443 (Nginx)"
             else
                 echo -e "Port: ${current_port}"
@@ -1569,7 +1581,7 @@ function get_ssl_certificate() {
     ip_check
     domain_check
 
-    if [[ ! -e "/usr/local/bin/xray" && ! -e "${xray_conf_dir}" ]]; then
+    if [[ ! -e "/usr/local/bin/xray" && ! -e "${XRAY_CONFIG_DIRECTORY}" ]]; then
         xray_install
     else
         print_ok "xray is already installed"
