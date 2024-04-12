@@ -27,7 +27,7 @@ website_dir="/var/www/html"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 nginx_conf="/etc/nginx/sites-available/default"
-go_version="1.20.3"
+go_version="1.22.2"
 
 
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
@@ -108,7 +108,7 @@ function check_os() {
         exit
     elif [[ "$os" == "debian" && "$os_version" -lt 10 ]]; then
         print_error "${Yellow}Debian 11${Color_Off} or higher is required to use this installer.
-        This version of fedora is too old and unsupported."
+        This version of debian is too old and unsupported."
         exit
     fi
 }
@@ -141,30 +141,14 @@ function install_nginx() {
 
 
 function install_deps() {
-    installit lsof tar
-    judge "Install lsof tar"
-
-    installit cron htop
-    judge "install crontab htop"
+    installit lsof tar cron htop unzip curl \
+        libpcre3 libpre3-dev zlib1g-dev openssl \
+        libssl-dev qrencode jq
+    judge "Install dependencies"
 
     touch /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
     systemctl start cron && systemctl enable cron
     judge "crontab autostart"
-
-    installit unzip
-    judge "install unzip"
-
-    installit curl
-    judge "install curl"
-
-    installit libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
-    judge "install libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev"
-
-    installit qrencode
-    judge "install qrencode"
-
-    installit jq
-    judge "install jq"
 
     if [[ ! -e "/usr/local/bin" ]]; then
         mkdir /usr/local/bin >/dev/null 2>&1
@@ -210,18 +194,13 @@ function cloudflare_dns() {
 function domain_check() {
     read -rp "Please enter your domain name information (example: www.google.com):" domain
     echo -e "${domain}" >/usr/local/domain.txt
-    #domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
+
     domain_ip=$(ping -c 1 ${domain} | grep -m 1 -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}')
     print_ok "Getting domain IP address information, please be wait..."
-    #wgcfv4_status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
-    #wgcfv6_status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
-    #if [[ ${wgcfv4_status} =~ "on"|"plus" ]] || [[ ${wgcfv6_status} =~ "on"|"plus" ]]; then
-    #  # Turn off wgcf-warp to prevent misjudgment of VPS IP situation
-    #  wg-quick down wgcf >/dev/null 2>&1
-    #  print_ok "wgcf-warp closed"
-    #fi
+
     local_ipv4=$(curl -s4m8 https://icanhazip.com)
     local_ipv6=$(curl -s6m8 https://icanhazip.com)
+
     if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
         # Pure IPv6 VPS, automatically add DNS64 server for acme.sh to apply for certificate
         echo -e nameserver 2606:4700:4700::1111 > /etc/resolv.conf
@@ -281,7 +260,7 @@ function xray_tmp_config_file_check_and_use() {
 
 function restart_nginx(){
     systemctl enable --now nginx
-    judge "nginx start"
+    judge "Nginx start"
     systemctl restart nginx
     judge "Nginx restart"
 }
@@ -301,10 +280,7 @@ function configure_nginx_reverse_proxy_notls() {
     sed -i "s/YOUR_DOMAIN/${local_ipv4}/g" ${nginx_conf}
     judge "Nginx config add ip"
 
-    systemctl enable --now nginx
-    judge "nginx start"
-    systemctl restart nginx
-    judge "nginx restart"
+    restart_nginx
 }
 
 function add_wsPath_to_nginx() {
@@ -314,8 +290,15 @@ function add_wsPath_to_nginx() {
 
 function setup_fake_website() {
     wget https://github.com/arcdetri/sample-blog/archive/master.zip
+    judge "Download sample-blog website"
+
     unzip master.zip
+    judge "unzip sample-blog website"
+
     cp -rf sample-blog-master/html/* /var/www/html/
+    judge "copy sample-blog website to /var/www/html"
+
+    rm -rf master.zip sample-blog-master
 }
 
 function send_go_and_gost() {
