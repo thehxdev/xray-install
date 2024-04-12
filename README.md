@@ -1,9 +1,34 @@
-# This project has been archived and no longer in active development.
+# xray-install
 
-**>> [How to Ask Question?](https://github.com/sergeantreacher/smart-question/blob/master/readme.md) <<**
+Xray installation and configuraion script for **`Ubuntu`** and **`Debian`** servers.
 
-## Install
-**Deprecated**
+
+
+## Features
+
+- Automaticly install and configure [Xray-core](https://github.com/XTLS/Xray-core)
+- Check exit code of every command that executed (No more nonsense errors).
+- User Management with unique UUID/Password for each user
+- VLess, VMess and Trojan Support
+- XTLS for VLess and Trojan Support 
+- VPS Basic settings for better experience
+- Enable TCP BBR with [teddysun script](https://github.com/teddysun/across/blob/master/bbr.sh)
+- Saving backups and bundle them in `.tar.gz` files for easy download.
+
+
+
+## Usage
+
+### Install Dependencies
+```bash
+apt update && apt install curl
+```
+
+### Run Script
+```bash
+bash -c "$(curl -L https://github.com/thehxdev/xray-install/raw/main/xray.sh)"
+```
+
 
 ## Supported protocols
 
