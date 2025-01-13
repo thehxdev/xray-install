@@ -114,9 +114,9 @@ function check_os() {
 }
 
 function disable_firewalls() {
-    is_firewalld=$(systemctl is-actice --quiet firewalld)
-    is_nftables=$(systemctl is-actice --quiet nftables)
-    is_ufw=$(systemctl is-actice --quiet ufw)
+    is_firewalld=$(systemctl is-active --quiet firewalld)
+    is_nftables=$(systemctl is-active --quiet nftables)
+    is_ufw=$(systemctl is-active --quiet ufw)
 
     if ${is_nftables}; then
         systemctl stop nftables
@@ -142,7 +142,7 @@ function install_nginx() {
 
 function install_deps() {
     installit lsof tar cron htop unzip curl \
-        libpcre3 libpre3-dev zlib1g-dev openssl \
+        libpcre3 libpcre3-dev zlib1g-dev openssl \
         libssl-dev qrencode jq
     judge "Install dependencies"
 
